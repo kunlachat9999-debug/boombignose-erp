@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js"
 
-import { buildOffice, type PersonInfo, type ZoneInfo } from "./office"
+import { buildOffice, type ErpStats, type PersonInfo, type ZoneInfo } from "./office"
 import { block, canvasTex, chip, curve, cyl, dampAngle, drawCube, ease, easeCubic, flat, G, mat, rng, yawOf } from "./kit"
 
 /** 1 real second = SIM_SPEED simulated seconds (clock, ETAs). */
@@ -90,7 +90,7 @@ function sideTexture(name: string, color: string, sub: string) {
 
 export function createWarehouseScene(
   host: HTMLElement,
-  opts: { onSnapshot(s: Snapshot): void; onSelect(id: string | null): void; reducedMotion?: boolean; tr?: (s: string) => string },
+  opts: { onSnapshot(s: Snapshot): void; onSelect(id: string | null): void; reducedMotion?: boolean; tr?: (s: string) => string; erp?: ErpStats },
 ): WarehouseScene {
   const tr = opts.tr ?? ((s: string) => s)
   const M = {
@@ -735,6 +735,7 @@ export function createWarehouseScene(
 
   const office = buildOffice({
     tr,
+    erp: opts.erp,
     scene,
     textures,
     simSpeed: SIM_SPEED,

@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { LocaleToggle, useT } from "@/components/locale-provider"
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
 
 // Local-dev convenience, off by default: the demo button renders only when both
 // vars are set at build time. Never set them for a real deployment.
@@ -94,6 +95,12 @@ function LoginForm() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="size-4 animate-spin" /> : t("Sign in", "เข้าสู่ระบบ")}
             </Button>
+            <div className="text-muted-foreground flex w-full items-center gap-2 text-xs">
+              <span className="bg-border h-px flex-1" />
+              {t("or", "หรือ")}
+              <span className="bg-border h-px flex-1" />
+            </div>
+            <GoogleSignInButton />
             {DEMO_EMAIL && DEMO_PASSWORD ? (
               <Button
                 type="button"

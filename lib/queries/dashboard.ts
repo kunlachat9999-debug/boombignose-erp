@@ -51,6 +51,7 @@ export type DashboardData = {
   unpaidInvoiceCount: number
   overdueInvoiceCount: number
   activeProjectCount: number
+  openDealCount: number
   followUpsDueToday: FollowUp[]
   overdueFollowUps: FollowUp[]
 }
@@ -199,6 +200,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     activeProjectCount: projects.filter((p) =>
       ACTIVE_PROJECT_STATUSES.includes(p.status)
     ).length,
+    openDealCount: deals.filter((d) => d.stage !== "won" && d.stage !== "lost").length,
     followUpsDueToday,
     overdueFollowUps,
   }

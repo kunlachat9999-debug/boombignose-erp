@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card"
 import { LocaleToggle, useT } from "@/components/locale-provider"
 import { translateMessage } from "@/lib/i18n-messages"
+import { GoogleSignInButton } from "@/components/google-sign-in-button"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -160,6 +161,12 @@ export default function SignupPage() {
                 t("Create account", "สร้างบัญชี")
               )}
             </Button>
+            <div className="text-muted-foreground flex w-full items-center gap-2 text-xs">
+              <span className="bg-border h-px flex-1" />
+              {t("or", "หรือ")}
+              <span className="bg-border h-px flex-1" />
+            </div>
+            <GoogleSignInButton />
             <p className="text-muted-foreground text-center text-xs">
               {t("Already have an account? ", "มีบัญชีอยู่แล้ว? ")}
               <Link href="/login" className="underline underline-offset-4">

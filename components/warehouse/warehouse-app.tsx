@@ -40,6 +40,7 @@ import {
   type WarehouseScene,
   type ZoneInfo,
 } from "./scene"
+import type { ErpStats } from "./office"
 
 type Entity = ForkliftInfo | TruckInfo | PersonInfo | ZoneInfo
 
@@ -59,7 +60,7 @@ const STATE_STYLE: Record<string, string> = {
   Available: "bg-slate-100 text-slate-500",
 }
 
-export function WarehouseApp() {
+export function WarehouseApp({ erp }: { erp?: ErpStats }) {
   const locale = useLocale()
   const t = useT()
   const w = warehouseTranslator(locale)
@@ -79,6 +80,7 @@ export function WarehouseApp() {
       onSelect: (id) => setSel((p) => ({ id, focus: false, n: p.n + 1 })),
       reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
       tr: warehouseTranslator(locale),
+      erp,
     })
     sceneRef.current = s
     const onKey = (e: KeyboardEvent) => {
@@ -94,6 +96,8 @@ export function WarehouseApp() {
       sceneRef.current = null
     }
     // Rebuild the scene on language change so in-canvas labels re-render.
+    // `erp` is a server snapshot per page load, so it never changes here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale])
 
   useEffect(() => sceneRef.current?.select(sel.id, sel.focus), [sel])
@@ -121,11 +125,11 @@ export function WarehouseApp() {
 
       {/* header */}
       <header className="absolute inset-x-0 top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200/70 bg-white/90 px-4 backdrop-blur md:gap-6 md:px-6">
-        <div className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2" title={t("Back to ERP", "กลับไปหน้า ERP")}>
           <Box className="size-7 fill-blue-500 text-blue-700" aria-hidden />
           <span className="text-lg font-bold tracking-tight">BoomBigNose</span>
           <span className="hidden rounded-md bg-blue-50 px-1.5 py-0.5 text-[11px] font-semibold text-blue-700 sm:inline">{t("Campus", "แคมปัส")}</span>
-        </div>
+        </Link>
         <form onSubmit={onSearch} className="relative hidden max-w-md flex-1 md:block">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
           <input
@@ -171,7 +175,7 @@ export function WarehouseApp() {
             <div className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-semibold text-white">BB</div>
             <div className="leading-tight">
               <div className="text-sm font-semibold">{t("Ops Control", "ศูนย์ควบคุม")}</div>
-              <div className="text-[11px] text-slate-500">BoomBigNose</div>
+              <div className="text-[11px] text-slate-500">{erp?.orgName ?? "BoomBigNose"}</div>
             </div>
           </div>
         </div>

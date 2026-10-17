@@ -1,0 +1,10 @@
+# Secrets stay local; Vercel gets env vars from its own settings.
+.env
+.env.*
+!.env.example
+supabase/.env*
+supabase/.branches
+supabase/.temp
+.agents
+.claude
+e2e

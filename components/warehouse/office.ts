@@ -24,6 +24,19 @@ export interface ZoneInfo {
   links: [string, string][]
 }
 
+/** Live workspace numbers (baht, not satang). When present they replace the simulated business stats. */
+export interface ErpStats {
+  orgName: string
+  openDeals: number
+  pipeline: number
+  revenueMonth: number
+  unpaidCount: number
+  unpaid: number
+  activeProjects: number
+  billableHours: number
+  runwayMonths: number | null
+}
+
 export interface OfficeCtx {
   scene: THREE.Scene
   textures: THREE.Texture[]
@@ -32,6 +45,7 @@ export interface OfficeCtx {
   onZoneClick(id: string): void
   /** Display translation for in-canvas labels. */
   tr: (s: string) => string
+  erp?: ErpStats
 }
 
 const FLOOR = 0.32
@@ -83,6 +97,7 @@ const hhmm = (sec: number) => {
 }
 
 export function buildOffice(ctx: OfficeCtx) {
+  const erp = ctx.erp
   const r = rng(11)
   const g = new THREE.Group()
   ctx.scene.add(g)
@@ -132,7 +147,7 @@ export function buildOffice(ctx: OfficeCtx) {
     g.add(tag.obj)
     zoneTags.set(z.id, tag.el.querySelector<HTMLElement>("[data-s]")!)
   }
-  const hq = chip(`<b class="text-blue-700">BoomBigNose HQ</b> ${ctx.tr("Entrance")}`)
+  const hq = chip(`<b class="text-blue-700">${erp?.orgName ?? "BoomBigNose HQ"}</b> ${ctx.tr("Entrance")}`)
   hq.obj.position.set(42, 3.4, CORR)
   g.add(hq.obj)
 
@@ -528,6 +543,15 @@ export function buildOffice(ctx: OfficeCtx) {
     meetingsToday: 3,
     lastCron: 0,
   }
+  if (erp) {
+    Object.assign(stats, {
+      openDeals: erp.openDeals,
+      pipeline: erp.pipeline,
+      revenue: erp.revenueMonth,
+      invoicesDue: erp.unpaidCount,
+      hours: erp.billableHours,
+    })
+  }
   const bars = Array.from({ length: 14 }, () => 0.3 + r() * 0.6)
   function drawDash() {
     const c = dashCv.getContext("2d")!
@@ -649,7 +673,8 @@ export function buildOffice(ctx: OfficeCtx) {
     // business activity
     const team = (id: string) => people.filter((p) => p.info.zoneId === id)
     if (Math.random() < dt * 0.3 * (team("sales").filter(atDesk).length / 6)) stats.calls++
-    if (Math.random() < dt * 0.05) {
+    // Simulated deal/invoice events only when there is no real workspace data.
+    if (!erp && Math.random() < dt * 0.05) {
       const v = 60_000 + Math.round(Math.random() * 14) * 10_000
       if (Math.random() > 0.5 || stats.openDeals < 6) {
         stats.openDeals++
@@ -669,15 +694,15 @@ export function buildOffice(ctx: OfficeCtx) {
       else notes.forEach((x) => (x.userData.col = 0))
     }
     for (const n of notes) n.position.x += (colX[n.userData.col] + (n.userData.row % 2 ? 0.35 : -0.35) - n.position.x) * (1 - Math.exp(-dt * 5))
-    stats.hours += (team("studio").filter(atDesk).length * dt * ctx.simSpeed) / 3600
-    if (Math.random() < dt * 0.05) {
+    if (!erp) stats.hours += (team("studio").filter(atDesk).length * dt * ctx.simSpeed) / 3600
+    if (!erp && Math.random() < dt * 0.05) {
       const v = 20_000 + Math.round(Math.random() * 15) * 5_000
       stats.paidToday += v
       stats.revenue += v
       stats.invoicesDue = Math.max(0, stats.invoicesDue - 1)
       floatChip(`Invoice paid · ${thb(v)}`, 70, 1.5)
     }
-    if (Math.random() < dt * 0.03) stats.invoicesDue++
+    if (!erp && Math.random() < dt * 0.03) stats.invoicesDue++
     if (Math.random() < dt * 0.03) {
       stats.visitors++
       stats.leads++
@@ -733,12 +758,12 @@ export function buildOffice(ctx: OfficeCtx) {
     const inMeeting = people.filter((p) => p.meeting && p.state === "sit").length
     const rows: Record<string, [string, string][]> = {
       sales: [["Open deals", String(stats.openDeals)], ["Pipeline", thb(stats.pipeline)], ["Calls today", String(stats.calls)], desks],
-      studio: [["Active projects", "6"], ["Tasks done today", String(stats.tasks)], ["Hours logged", stats.hours.toFixed(1)], desks],
+      studio: [["Active projects", erp ? String(erp.activeProjects) : "6"], ["Tasks done today", String(stats.tasks)], [erp ? "Billable hours this month" : "Hours logged", stats.hours.toFixed(1)], desks],
       reception: [["Visitors today", String(stats.visitors)], ["New intake leads", String(stats.leads)], ["Receptionist", people.find((p) => p.info.zoneId === "reception")!.info.status]],
       servers: [["Automations run", Math.floor(stats.autoRuns).toLocaleString()], ["Webhooks", "Healthy"], ["Uptime", "99.98%"], ["Last cron", stats.lastCron ? hhmm(stats.lastCron) : "—"]],
       meeting: [["Now", meetingTitle || "Free"], ["Seated", String(inMeeting)], ["Meetings today", String(stats.meetingsToday)], ["Next", meetingTitle ? "After this one" : hhmm(nextMeetingAt)]],
-      founder: [["Revenue MTD", thb(stats.revenue)], ["Pipeline", thb(stats.pipeline)], ["Cash runway", "14 mo"], ["Founder", people.find((p) => p.info.zoneId === "founder")!.info.status]],
-      finance: [["Invoices due", String(stats.invoicesDue)], ["Paid today", thb(stats.paidToday)], ["Revenue MTD", thb(stats.revenue)], desks],
+      founder: [["Revenue MTD", thb(stats.revenue)], ["Pipeline", thb(stats.pipeline)], ["Cash runway", erp ? (erp.runwayMonths === null ? "∞" : `${erp.runwayMonths.toFixed(1)} mo`) : "14 mo"], ["Founder", people.find((p) => p.info.zoneId === "founder")!.info.status]],
+      finance: [[erp ? "Unpaid invoices" : "Invoices due", String(stats.invoicesDue)], erp ? ["Unpaid", thb(erp.unpaid)] : ["Paid today", thb(stats.paidToday)], ["Revenue MTD", thb(stats.revenue)], desks],
     }
     const status = z.id === "meeting" ? (meetingTitle ? `In use · ${meetingTitle}` : "Available") : z.id === "servers" ? "All systems normal" : `${desks[1]} at desks`
     return { id: z.id, kind: "zone", name: z.name, sub: z.sub, status, stats: rows[z.id], links: z.links }

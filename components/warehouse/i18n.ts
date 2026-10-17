@@ -118,6 +118,9 @@ const TH: Record<string, string> = {
   "Waiting for truck": "รอรถบรรทุก",
   "Event kits": "ชุดอุปกรณ์งานอีเวนต์",
   Entrance: "ทางเข้า",
+  "Billable hours this month": "ชั่วโมงเรียกเก็บได้เดือนนี้",
+  "Unpaid invoices": "ใบแจ้งหนี้ค้างชำระ",
+  Unpaid: "ยอดค้างชำระ",
   "New intake lead": "มีลูกค้าใหม่เข้ามา",
 }
 
@@ -136,6 +139,8 @@ export function warehouseTranslator(locale: "th" | "en"): (s: string) => string 
   const tr = (s: string): string => {
     if (TH[s]) return TH[s]
     for (const [en, th] of PREFIXES) if (s.startsWith(en)) return th + tr(s.slice(en.length))
+    const months = /^([\d.]+) mo$/.exec(s)
+    if (months) return `${months[1]} เดือน`
     const desks = /^(\d+\/\d+) at desks$/.exec(s)
     if (desks) return `อยู่ที่โต๊ะ ${desks[1]}`
     return s

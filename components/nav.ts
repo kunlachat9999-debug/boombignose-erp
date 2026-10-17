@@ -13,6 +13,7 @@ import {
   Workflow,
   ScrollText,
   Settings,
+  Box,
   type LucideIcon,
 } from "lucide-react"
 
@@ -31,6 +32,7 @@ export type NavItem = {
  */
 export const NAV_ITEMS: NavItem[] = [
   { title: "Dashboard", titleTh: "แดชบอร์ด", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Campus 3D", titleTh: "แคมปัส 3D", href: "/warehouse", icon: Box },
   { title: "Clients", titleTh: "ลูกค้า", href: "/clients", icon: Users },
   { title: "Deals", titleTh: "ดีล", href: "/deals", icon: Handshake },
   { title: "Quotes", titleTh: "ใบเสนอราคา", href: "/quotes", icon: FileText },
