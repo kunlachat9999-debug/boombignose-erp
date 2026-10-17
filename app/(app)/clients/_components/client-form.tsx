@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 const ClientSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -30,7 +32,7 @@ type ClientValues = z.infer<typeof ClientSchema>
 export function ClientForm({
   action,
   defaultValues,
-  submitLabel = "Save client",
+  submitLabel,
   /** When true, the action redirects on success, so we don't toast here. */
   redirectsOnSuccess = false,
 }: {
@@ -40,6 +42,7 @@ export function ClientForm({
   redirectsOnSuccess?: boolean
 }) {
   const router = useRouter()
+  const t = useT()
   const form = useForm<ClientValues>({
     resolver: zodResolver(ClientSchema),
     defaultValues: {
@@ -56,12 +59,12 @@ export function ClientForm({
         onSubmit={form.handleSubmit(async (values) => {
           const res = await action(values)
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
           // On a redirecting action the navigation already happened.
           if (!redirectsOnSuccess) {
-            toast.success("Saved")
+            toast.success(t("Saved", "บันทึกแล้ว"))
             router.refresh()
           }
         })}
@@ -72,9 +75,9 @@ export function ClientForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t("Name", "ชื่อ")}</FormLabel>
               <FormControl>
-                <Input placeholder="Acme Co." {...field} />
+                <Input placeholder={t("Acme Co.", "บริษัท ตัวอย่าง จำกัด")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,9 +90,9 @@ export function ClientForm({
             name="industry"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Industry</FormLabel>
+                <FormLabel>{t("Industry", "อุตสาหกรรม")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. E-commerce" {...field} />
+                  <Input placeholder={t("e.g. E-commerce", "เช่น อีคอมเมิร์ซ")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,9 +103,9 @@ export function ClientForm({
             name="source"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Source</FormLabel>
+                <FormLabel>{t("Source", "แหล่งที่มา")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Referral" {...field} />
+                  <Input placeholder={t("e.g. Referral", "เช่น มีคนแนะนำ")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,10 +118,10 @@ export function ClientForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>{t("Notes", "บันทึก")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Context, how you met, what they need…"
+                  placeholder={t("Context, how you met, what they need…", "ที่มา รู้จักกันอย่างไร ต้องการอะไร…")}
                   rows={4}
                   {...field}
                 />
@@ -130,7 +133,7 @@ export function ClientForm({
 
         <div className="flex items-center gap-2">
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            {submitLabel}
+            {submitLabel ?? t("Save client", "บันทึกลูกค้า")}
           </Button>
           <Button
             type="button"
@@ -138,7 +141,7 @@ export function ClientForm({
             disabled={form.formState.isSubmitting}
             onClick={() => router.back()}
           >
-            Cancel
+            {t("Cancel", "ยกเลิก")}
           </Button>
         </div>
       </form>

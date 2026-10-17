@@ -13,6 +13,7 @@ import {
   type ProjectFormValues,
   type ClientOption,
 } from "../_components/project-form"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -22,6 +23,7 @@ export default async function NewProjectPage({
   searchParams: Promise<{ dealId?: string; clientId?: string }>
 }) {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const { dealId, clientId } = await searchParams
   const supabase = await createClient()
 
@@ -67,15 +69,15 @@ export default async function NewProjectPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="New project"
+        title={t("New project", "สร้างโปรเจกต์")}
         description={
           resolvedDealId
-            ? "Prefilled from a won deal — review and create."
-            : "Set up a new delivery project."
+            ? t("Prefilled from a won deal — review and create.", "กรอกข้อมูลจากดีลที่ปิดได้แล้ว — ตรวจสอบแล้วกดสร้าง")
+            : t("Set up a new delivery project.", "ตั้งค่าโปรเจกต์ส่งมอบใหม่")
         }
       >
         <Button variant="outline" render={<Link href="/projects" />}>
-          <ArrowLeft data-icon="inline-start" /> Back
+          <ArrowLeft data-icon="inline-start" /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 

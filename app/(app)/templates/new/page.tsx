@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { TemplateForm } from "../_components/template-form"
 import { createTemplate } from "../actions"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
 export default async function NewTemplatePage() {
   await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const { data: categories } = await supabase
     .from("template_categories")
@@ -26,9 +28,12 @@ export default async function NewTemplatePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="New template" description="Add a reusable automation playbook.">
+      <PageHeader
+        title={t("New template", "สร้างเทมเพลต")}
+        description={t("Add a reusable automation playbook.", "เพิ่มคู่มืองานอัตโนมัติที่ใช้ซ้ำได้")}
+      >
         <Button variant="outline" render={<Link href="/templates" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -37,7 +42,7 @@ export default async function NewTemplatePage() {
           <TemplateForm
             categories={categories ?? []}
             action={action}
-            submitLabel="Create template"
+            submitLabel={t("Create template", "สร้างเทมเพลต")}
           />
         </CardContent>
       </Card>

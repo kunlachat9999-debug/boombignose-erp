@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import { ChangeStageSelect } from "../_components/change-stage-select"
 import { ActivitiesSection } from "../_components/activities-section"
 import { AiPanel } from "../_components/ai-panel"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -24,6 +25,7 @@ export default async function DealDetailPage({
 }) {
   const { id } = await params
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const today = todayISO()
 
@@ -62,7 +64,7 @@ export default async function DealDetailPage({
           render={<Link href="/deals" />}
         >
           <ArrowLeft className="size-4" />
-          Pipeline
+          {t("Pipeline", "ดีลทั้งหมด")}
         </Button>
         <PageHeader title={deal.title} description={client?.name ?? undefined}>
           {deal.stage === "won" ? (
@@ -74,7 +76,7 @@ export default async function DealDetailPage({
               }
             >
               <FolderPlus className="size-4" />
-              Create project
+              {t("Create project", "สร้างโปรเจกต์")}
             </Button>
           ) : null}
           <Button
@@ -82,7 +84,7 @@ export default async function DealDetailPage({
             render={<Link href={`/deals/${deal.id}/edit`} />}
           >
             <Pencil className="size-4" />
-            Edit
+            {t("Edit", "แก้ไข")}
           </Button>
         </PageHeader>
       </div>
@@ -91,24 +93,24 @@ export default async function DealDetailPage({
         <div className="space-y-6 lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Deal</CardTitle>
+              <CardTitle className="text-base">{t("Deal", "ดีล")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              <Field label="Value">
+              <Field label={t("Value", "มูลค่า")}>
                 <span className="text-base font-semibold">
                   {formatTHB(deal.value_satang)}
                 </span>
               </Field>
-              <Field label="Stage">
+              <Field label={t("Stage", "ขั้นตอน")}>
                 <DealStageBadge stage={deal.stage} />
               </Field>
-              <Field label="Change stage">
+              <Field label={t("Change stage", "เปลี่ยนขั้นตอน")}>
                 <ChangeStageSelect dealId={deal.id} stage={deal.stage} />
               </Field>
-              <Field label="Expected close">
+              <Field label={t("Expected close", "คาดว่าจะปิด")}>
                 {deal.expected_close_date ?? "—"}
               </Field>
-              <Field label="Next follow-up">
+              <Field label={t("Next follow-up", "ติดตามครั้งถัดไป")}>
                 <span
                   className={cn(
                     followUpOverdue
@@ -119,13 +121,13 @@ export default async function DealDetailPage({
                   )}
                 >
                   {followUp
-                    ? `${followUpOverdue ? "Overdue · " : followUpDueToday ? "Today · " : ""}${followUp}`
+                    ? `${followUpOverdue ? t("Overdue · ", "เลยกำหนด · ") : followUpDueToday ? t("Today · ", "วันนี้ · ") : ""}${followUp}`
                     : "—"}
                 </span>
               </Field>
-              <Field label="Source">{deal.source ?? "—"}</Field>
+              <Field label={t("Source", "แหล่งที่มา")}>{deal.source ?? "—"}</Field>
               {deal.notes ? (
-                <Field label="Notes">
+                <Field label={t("Notes", "บันทึก")}>
                   <p className="whitespace-pre-wrap">{deal.notes}</p>
                 </Field>
               ) : null}
@@ -138,7 +140,7 @@ export default async function DealDetailPage({
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Activities</CardTitle>
+              <CardTitle className="text-base">{t("Activities", "กิจกรรม")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ActivitiesSection

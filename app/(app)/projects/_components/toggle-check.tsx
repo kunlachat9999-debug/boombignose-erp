@@ -5,6 +5,8 @@ import { toast } from "sonner"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { toggleTask, toggleMilestone } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function TaskToggle({
   id,
@@ -18,6 +20,7 @@ export function TaskToggle({
   label: string
 }) {
   const [pending, startTransition] = useTransition()
+  const t = useT()
   return (
     <Checkbox
       checked={done}
@@ -26,7 +29,7 @@ export function TaskToggle({
       onCheckedChange={(value) =>
         startTransition(async () => {
           const res = await toggleTask({ id, projectId, done: value === true })
-          if (res?.error) toast.error(res.error)
+          if (res?.error) toast.error(translateMessage(t, res.error))
         })
       }
     />
@@ -45,6 +48,7 @@ export function MilestoneToggle({
   label: string
 }) {
   const [pending, startTransition] = useTransition()
+  const t = useT()
   return (
     <Checkbox
       checked={done}
@@ -57,7 +61,7 @@ export function MilestoneToggle({
             projectId,
             done: value === true,
           })
-          if (res?.error) toast.error(res.error)
+          if (res?.error) toast.error(translateMessage(t, res.error))
         })
       }
     />

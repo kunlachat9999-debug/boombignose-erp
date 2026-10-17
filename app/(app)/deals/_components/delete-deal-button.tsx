@@ -17,9 +17,12 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { deleteDeal } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function DeleteDealButton({ dealId }: { dealId: string }) {
   const [isPending, startTransition] = useTransition()
+  const t = useT()
 
   return (
     <AlertDialog>
@@ -27,20 +30,22 @@ export function DeleteDealButton({ dealId }: { dealId: string }) {
         render={
           <Button variant="outline" disabled={isPending}>
             <Trash2 className="size-4" />
-            Delete
+            {t("Delete", "ลบ")}
           </Button>
         }
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this deal?</AlertDialogTitle>
+          <AlertDialogTitle>{t("Delete this deal?", "ลบดีลนี้?")}</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes the deal. Linked activities are kept but
-            detached. This can&apos;t be undone.
+            {t(
+              "This permanently removes the deal. Linked activities are kept but detached. This can't be undone.",
+              "ดีลนี้จะถูกลบถาวร กิจกรรมที่เกี่ยวข้องจะยังอยู่แต่ไม่ผูกกับดีลแล้ว ไม่สามารถย้อนกลับได้"
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("Cancel", "ยกเลิก")}</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={isPending}
@@ -49,11 +54,11 @@ export function DeleteDealButton({ dealId }: { dealId: string }) {
               e.preventDefault()
               startTransition(async () => {
                 const res = await deleteDeal(dealId)
-                if (res?.error) toast.error(res.error)
+                if (res?.error) toast.error(translateMessage(t, res.error))
               })
             }}
           >
-            Delete deal
+            {t("Delete deal", "ลบดีล")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

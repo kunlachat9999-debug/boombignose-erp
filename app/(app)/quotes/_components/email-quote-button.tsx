@@ -8,6 +8,8 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 
 import { sendQuoteEmail } from "../email-actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 /**
  * "Email quote" — sends the quote to the client's contact email with a link to
@@ -16,6 +18,7 @@ import { sendQuoteEmail } from "../email-actions"
  */
 export function EmailQuoteButton({ quoteId }: { quoteId: string }) {
   const router = useRouter()
+  const t = useT()
   const [pending, startTransition] = useTransition()
 
   return (
@@ -28,20 +31,23 @@ export function EmailQuoteButton({ quoteId }: { quoteId: string }) {
           const res = await sendQuoteEmail(quoteId)
           if (res.reason === "not_configured") {
             toast.warning(
-              "Email is not configured. Set RESEND_API_KEY to enable sending."
+              t(
+                "Email is not configured. Set RESEND_API_KEY to enable sending.",
+                "ยังไม่ได้ตั้งค่าอีเมล กรุณาตั้ง RESEND_API_KEY เพื่อเปิดการส่ง"
+              )
             )
             return
           }
           if (res.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
-          toast.success("Quote emailed to the client")
+          toast.success(t("Quote emailed to the client", "ส่งใบเสนอราคาทางอีเมลถึงลูกค้าแล้ว"))
           router.refresh()
         })
       }
     >
-      <Mail /> {pending ? "Sending…" : "Email quote"}
+      <Mail /> {pending ? t("Sending…", "กำลังส่ง…") : t("Email quote", "ส่งอีเมลใบเสนอราคา")}
     </Button>
   )
 }

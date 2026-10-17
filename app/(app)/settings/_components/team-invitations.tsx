@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/empty-state"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
 
 export type PendingInvite = {
   id: string
@@ -36,6 +39,7 @@ export function TeamInvitations({
   invites: PendingInvite[]
   appUrl: string
 }) {
+  const t = useT()
   const [email, setEmail] = useState("")
   const [role, setRole] = useState<"member" | "admin">("member")
   const [pending, startTransition] = useTransition()
@@ -48,26 +52,26 @@ export function TeamInvitations({
   async function copy(token: string) {
     try {
       await navigator.clipboard.writeText(inviteLink(token))
-      toast.success("Invite link copied")
+      toast.success(t("Invite link copied", "คัดลอกลิงก์คำเชิญแล้ว"))
     } catch {
-      toast.error("Could not copy — link: " + inviteLink(token))
+      toast.error(t("Could not copy — link: ", "คัดลอกไม่สำเร็จ — ลิงก์: ") + inviteLink(token))
     }
   }
 
   function submit() {
     const value = email.trim()
     if (!value) {
-      toast.error("Enter an email to invite")
+      toast.error(t("Enter an email to invite", "กรุณากรอกอีเมลที่จะเชิญ"))
       return
     }
     startTransition(async () => {
       const res = await inviteMember({ email: value, role })
       if (res?.error) {
-        toast.error(res.error)
+        toast.error(translateMessage(t, res.error))
         return
       }
       setEmail("")
-      toast.success("Invitation created")
+      toast.success(t("Invitation created", "สร้างคำเชิญแล้ว"))
       if (res?.token) await copy(res.token)
     })
   }
@@ -75,8 +79,8 @@ export function TeamInvitations({
   function revoke(id: string) {
     startTransition(async () => {
       const res = await revokeInvitation({ id })
-      if (res?.error) toast.error(res.error)
-      else toast.success("Invitation revoked")
+      if (res?.error) toast.error(translateMessage(t, res.error))
+      else toast.success(t("Invitation revoked", "ยกเลิกคำเชิญแล้ว"))
     })
   }
 
@@ -92,6 +96,10 @@ export function TeamInvitations({
           className="flex-1"
         />
         <Select
+          items={[
+            { value: "member", label: enumLabel(t, "role_enum", "member") },
+            { value: "admin", label: enumLabel(t, "role_enum", "admin") },
+          ]}
           value={role}
           onValueChange={(v) => setRole(v as "member" | "admin")}
         >
@@ -99,20 +107,20 @@ export function TeamInvitations({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="member">Member</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="member">{enumLabel(t, "role_enum", "member")}</SelectItem>
+            <SelectItem value="admin">{enumLabel(t, "role_enum", "admin")}</SelectItem>
           </SelectContent>
         </Select>
         <Button onClick={submit} disabled={pending}>
-          <UserPlus /> Invite
+          <UserPlus /> {t("Invite", "เชิญ")}
         </Button>
       </div>
 
       {invites.length === 0 ? (
         <EmptyState
           icon={Mail}
-          title="No pending invitations"
-          description="Invite a teammate by email to give them access."
+          title={t("No pending invitations", "ไม่มีคำเชิญที่รอตอบรับ")}
+          description={t("Invite a teammate by email to give them access.", "เชิญเพื่อนร่วมทีมทางอีเมลเพื่อให้สิทธิ์เข้าถึง")}
           className="border-0 p-6"
         />
       ) : (
@@ -121,15 +129,15 @@ export function TeamInvitations({
             <li key={inv.id} className="flex items-center gap-3 py-2.5">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{inv.email}</p>
-                <p className="text-muted-foreground text-xs">Pending</p>
+                <p className="text-muted-foreground text-xs">{t("Pending", "รอตอบรับ")}</p>
               </div>
               <Badge variant="outline" className="shrink-0 capitalize">
-                {inv.role}
+                {enumLabel(t, "role_enum", inv.role)}
               </Badge>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Copy invite link"
+                aria-label={t("Copy invite link", "คัดลอกลิงก์คำเชิญ")}
                 onClick={() => copy(inv.token)}
                 disabled={pending}
               >
@@ -138,7 +146,7 @@ export function TeamInvitations({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Revoke invitation"
+                aria-label={t("Revoke invitation", "ยกเลิกคำเชิญ")}
                 onClick={() => revoke(inv.id)}
                 disabled={pending}
               >

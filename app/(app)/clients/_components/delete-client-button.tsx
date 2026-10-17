@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { deleteClient } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function DeleteClientButton({
   id,
@@ -26,23 +28,26 @@ export function DeleteClientButton({
   name: string
 }) {
   const [pending, startTransition] = useTransition()
+  const t = useT()
 
   return (
     <AlertDialog>
       <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
         <Trash2 />
-        Delete
+        {t("Delete", "ลบ")}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {name}?</AlertDialogTitle>
+          <AlertDialogTitle>{t(`Delete ${name}?`, `ลบ ${name}?`)}</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes the client and its contacts. Deals and
-            activities linked to it are kept. This cannot be undone.
+            {t(
+              "This permanently removes the client and its contacts. Deals and activities linked to it are kept. This cannot be undone.",
+              "ลูกค้าและผู้ติดต่อทั้งหมดจะถูกลบถาวร ส่วนดีลและกิจกรรมที่เกี่ยวข้องจะยังอยู่ ไม่สามารถย้อนกลับได้"
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{t("Cancel", "ยกเลิก")}</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={pending}
@@ -50,11 +55,11 @@ export function DeleteClientButton({
               startTransition(async () => {
                 const res = await deleteClient(id)
                 // On success the action redirects; only an error returns here.
-                if (res?.error) toast.error(res.error)
+                if (res?.error) toast.error(translateMessage(t, res.error))
               })
             }
           >
-            Delete client
+            {t("Delete client", "ลบลูกค้า")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

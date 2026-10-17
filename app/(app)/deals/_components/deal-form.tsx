@@ -24,16 +24,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-
-const STAGES = [
-  { value: "lead", label: "Lead" },
-  { value: "contacted", label: "Contacted" },
-  { value: "discovery", label: "Discovery" },
-  { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-] as const
+import { useT } from "@/components/locale-provider"
+import { enumLabel } from "@/lib/enum-labels"
+import { translateMessage } from "@/lib/i18n-messages"
+import { Constants } from "@/lib/types/database"
 
 const Schema = z.object({
   clientId: z.string().min(1, "Pick a client"),
@@ -60,7 +54,7 @@ export function DealForm({
   clients,
   action,
   defaultValues,
-  submitLabel = "Save deal",
+  submitLabel,
 }: {
   clients: { id: string; name: string }[]
   action: (values: DealFormValues) => Promise<{ error?: string }>
@@ -68,6 +62,11 @@ export function DealForm({
   submitLabel?: string
 }) {
   const router = useRouter()
+  const t = useT()
+  const stages = Constants.public.Enums.deal_stage.map((s) => ({
+    value: s,
+    label: enumLabel(t, "deal_stage", s),
+  }))
   const form = useForm<z.input<typeof Schema>, unknown, DealFormValues>({
     resolver: zodResolver(Schema),
     defaultValues: {
@@ -90,10 +89,10 @@ export function DealForm({
           const res = await action(values)
           // On success the action redirects; only an error returns here.
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
-          toast.success("Saved")
+          toast.success(t("Saved", "บันทึกแล้ว"))
           router.refresh()
         })}
         className="space-y-5"
@@ -103,7 +102,7 @@ export function DealForm({
           name="clientId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Client</FormLabel>
+              <FormLabel>{t("Client", "ลูกค้า")}</FormLabel>
               <Select
                 items={clients.map((c) => ({ value: c.id, label: c.name }))}
                 value={field.value || null}
@@ -111,7 +110,7 @@ export function DealForm({
               >
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a client" />
+                    <SelectValue placeholder={t("Select a client", "เลือกลูกค้า")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -132,9 +131,9 @@ export function DealForm({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>{t("Title", "ชื่อดีล")}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Website automation retainer" {...field} />
+                <Input placeholder={t("e.g. Website automation retainer", "เช่น สัญญาดูแลระบบอัตโนมัติเว็บไซต์")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -147,19 +146,19 @@ export function DealForm({
             name="stage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Stage</FormLabel>
+                <FormLabel>{t("Stage", "ขั้นตอน")}</FormLabel>
                 <Select
-                  items={STAGES.map((s) => ({ value: s.value, label: s.label }))}
+                  items={stages}
                   value={field.value}
                   onValueChange={(value) => field.onChange(value)}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Stage" />
+                      <SelectValue placeholder={t("Stage", "ขั้นตอน")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {STAGES.map((s) => (
+                    {stages.map((s) => (
                       <SelectItem key={s.value} value={s.value}>
                         {s.label}
                       </SelectItem>
@@ -176,7 +175,7 @@ export function DealForm({
             name="valueBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Value (THB)</FormLabel>
+                <FormLabel>{t("Value (THB)", "มูลค่า (บาท)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -203,7 +202,7 @@ export function DealForm({
             name="expectedCloseDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Expected close date</FormLabel>
+                <FormLabel>{t("Expected close date", "วันที่คาดว่าจะปิด")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -217,7 +216,7 @@ export function DealForm({
             name="nextFollowUpDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Next follow-up date</FormLabel>
+                <FormLabel>{t("Next follow-up date", "วันที่ติดตามครั้งถัดไป")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -232,9 +231,9 @@ export function DealForm({
           name="source"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Source</FormLabel>
+              <FormLabel>{t("Source", "แหล่งที่มา")}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Referral, LINE, Facebook" {...field} />
+                <Input placeholder={t("e.g. Referral, LINE, Facebook", "เช่น มีคนแนะนำ, LINE, Facebook")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -246,9 +245,9 @@ export function DealForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>{t("Notes", "บันทึก")}</FormLabel>
               <FormControl>
-                <Textarea rows={4} placeholder="Context, next steps, anything useful…" {...field} />
+                <Textarea rows={4} placeholder={t("Context, next steps, anything useful…", "ที่มา ขั้นตอนถัดไป หรือข้อมูลที่มีประโยชน์…")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -257,10 +256,10 @@ export function DealForm({
 
         <div className="flex items-center gap-2">
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            {submitLabel}
+            {submitLabel ?? t("Save deal", "บันทึกดีล")}
           </Button>
           <Button type="button" variant="ghost" onClick={() => router.back()}>
-            Cancel
+            {t("Cancel", "ยกเลิก")}
           </Button>
         </div>
       </form>

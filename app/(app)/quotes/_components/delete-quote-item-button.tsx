@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { deleteQuoteItem } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function DeleteQuoteItemButton({
   id,
@@ -26,6 +28,7 @@ export function DeleteQuoteItemButton({
   id: string
   label: string
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -33,20 +36,23 @@ export function DeleteQuoteItemButton({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger
         render={
-          <Button variant="ghost" size="icon-sm" aria-label={`Delete ${label}`}>
+          <Button variant="ghost" size="icon-sm" aria-label={t(`Delete ${label}`, `ลบ ${label}`)}>
             <Trash2 className="text-muted-foreground" />
           </Button>
         }
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove this line item?</AlertDialogTitle>
+          <AlertDialogTitle>{t("Remove this line item?", "ลบรายการนี้?")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {label} will be removed and the quote total recalculated.
+            {t(
+              `${label} will be removed and the quote total recalculated.`,
+              `${label} จะถูกลบและคำนวณยอดรวมใบเสนอราคาใหม่`
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("Cancel", "ยกเลิก")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
             onClick={(e) => {
@@ -54,15 +60,15 @@ export function DeleteQuoteItemButton({
               startTransition(async () => {
                 const res = await deleteQuoteItem({ id })
                 if (res?.error) {
-                  toast.error(res.error)
+                  toast.error(translateMessage(t, res.error))
                   return
                 }
-                toast.success("Item removed")
+                toast.success(t("Item removed", "ลบรายการแล้ว"))
                 setOpen(false)
               })
             }}
           >
-            Remove
+            {t("Remove", "ลบ")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -13,7 +13,8 @@ vi.mock("next/navigation", async (importOriginal) => ({
   ...await importOriginal<typeof import("next/navigation")>(),
   useRouter: () => ({ refresh: vi.fn() }),
 }))
-vi.mock("sonner", () => ({ toast: { error: state.toast, success: vi.fn() } }))
+vi.mock("@/components/locale-provider", () => ({ useT: () => (en: unknown) => en }))
+vi.mock("sonner",() => ({ toast: { error: state.toast, success: vi.fn() } }))
 vi.mock("@/app/(app)/quotes/actions", () => ({ convertQuoteToInvoice: state.action, setQuoteStatus: vi.fn() }))
 
 import { QuoteStatusControls } from "@/app/(app)/quotes/_components/quote-status-controls"

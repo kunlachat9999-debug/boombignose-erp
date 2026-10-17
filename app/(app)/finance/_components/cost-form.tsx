@@ -20,15 +20,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 
 import { SelectField, type Option } from "./form-fields"
-
-const CATEGORY_OPTIONS: Option[] = [
-  { value: "software", label: "Software" },
-  { value: "contractor", label: "Contractor" },
-  { value: "infra", label: "Infrastructure" },
-  { value: "marketing", label: "Marketing" },
-  { value: "salary", label: "Salary" },
-  { value: "other", label: "Other" },
-]
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
+import { Constants } from "@/lib/types/database"
 
 const Schema = z.object({
   category: z.enum([
@@ -57,6 +52,11 @@ export function CostForm({
   today: string
   action: (values: Values) => Promise<{ error?: string } | void>
 }) {
+  const t = useT()
+  const categoryOptions: Option[] = Constants.public.Enums.cost_category.map((v) => ({
+    value: v,
+    label: enumLabel(t, "cost_category", v),
+  }))
   const form = useForm<z.input<typeof Schema>, unknown, Values>({
     resolver: zodResolver(Schema),
     defaultValues: {
@@ -75,26 +75,26 @@ export function CostForm({
         onSubmit={form.handleSubmit(async (values) => {
           const res = await action(values)
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
-          toast.success("Cost saved")
+          toast.success(t("Cost saved", "บันทึกค่าใช้จ่ายแล้ว"))
         })}
         className="space-y-5"
       >
         <div className="grid gap-5 sm:grid-cols-2">
           <SelectField
             name="category"
-            label="Category"
-            placeholder="Select category"
-            options={CATEGORY_OPTIONS}
+            label={t("Category", "หมวดหมู่")}
+            placeholder={t("Select category", "เลือกหมวดหมู่")}
+            options={categoryOptions}
           />
           <FormField
             control={form.control}
             name="amountBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount (฿)</FormLabel>
+                <FormLabel>{t("Amount (฿)", "จำนวนเงิน (฿)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -108,7 +108,7 @@ export function CostForm({
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <FormDescription>Entered in baht.</FormDescription>
+                <FormDescription>{t("Entered in baht.", "กรอกเป็นบาท")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -121,7 +121,7 @@ export function CostForm({
             name="incurred_on"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Incurred on</FormLabel>
+                <FormLabel>{t("Incurred on", "วันที่เกิดค่าใช้จ่าย")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -134,9 +134,9 @@ export function CostForm({
             name="vendor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Vendor</FormLabel>
+                <FormLabel>{t("Vendor", "ผู้ขาย")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Figma, AWS, freelancer…" {...field} />
+                  <Input placeholder={t("e.g. Figma, AWS, freelancer…", "เช่น Figma, AWS, ฟรีแลนซ์…")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -146,12 +146,12 @@ export function CostForm({
 
         <SelectField
           name="project_id"
-          label="Project"
-          placeholder="No project"
+          label={t("Project", "โปรเจกต์")}
+          placeholder={t("No project", "ไม่ระบุโปรเจกต์")}
           options={projects}
           optional
-          noneLabel="No project"
-          description="Optional — attribute this cost to a project."
+          noneLabel={t("No project", "ไม่ระบุโปรเจกต์")}
+          description={t("Optional — attribute this cost to a project.", "ไม่บังคับ — ระบุว่าค่าใช้จ่ายนี้เป็นของโปรเจกต์ใด")}
         />
 
         <FormField
@@ -159,9 +159,9 @@ export function CostForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>{t("Notes", "หมายเหตุ")}</FormLabel>
               <FormControl>
-                <Textarea placeholder="What was this for?" {...field} />
+                <Textarea placeholder={t("What was this for?", "ใช้จ่ายเพื่ออะไร?")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -170,7 +170,7 @@ export function CostForm({
 
         <div className="flex justify-end gap-2">
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            Save cost
+            {t("Save cost", "บันทึกค่าใช้จ่าย")}
           </Button>
         </div>
       </form>

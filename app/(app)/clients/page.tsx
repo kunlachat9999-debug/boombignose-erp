@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table"
 import { formatDate } from "./_lib/format"
 import { ClientsToolbar } from "./_components/clients-toolbar"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -25,6 +26,7 @@ export default async function ClientsPage({
   searchParams: Promise<{ q?: string }>
 }) {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const { q: qParam } = await searchParams
   const q = (qParam ?? "").trim()
@@ -42,12 +44,12 @@ export default async function ClientsPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Clients"
-        description="Everyone you work with, and who to talk to."
+        title={t("Clients", "ลูกค้า")}
+        description={t("Everyone you work with, and who to talk to.", "ทุกคนที่คุณทำงานด้วย และผู้ติดต่อของแต่ละราย")}
       >
         <Button render={<Link href="/clients/new" />}>
           <Plus />
-          New client
+          {t("New client", "เพิ่มลูกค้า")}
         </Button>
       </PageHeader>
 
@@ -57,18 +59,18 @@ export default async function ClientsPage({
         q ? (
           <EmptyState
             icon={Users}
-            title="No matching clients"
-            description="No clients match your search. Try a different name."
+            title={t("No matching clients", "ไม่พบลูกค้าที่ค้นหา")}
+            description={t("No clients match your search. Try a different name.", "ไม่มีลูกค้าที่ตรงกับคำค้นหา ลองใช้ชื่ออื่น")}
           />
         ) : (
           <EmptyState
             icon={Users}
-            title="No clients yet"
-            description="Add your first client to start tracking contacts, deals, and work."
+            title={t("No clients yet", "ยังไม่มีลูกค้า")}
+            description={t("Add your first client to start tracking contacts, deals, and work.", "เพิ่มลูกค้ารายแรกเพื่อเริ่มติดตามผู้ติดต่อ ดีล และงาน")}
             action={
               <Button render={<Link href="/clients/new" />}>
                 <Plus />
-                New client
+                {t("New client", "เพิ่มลูกค้า")}
               </Button>
             }
           />
@@ -78,10 +80,10 @@ export default async function ClientsPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Industry</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead className="text-right">Added</TableHead>
+                <TableHead>{t("Name", "ชื่อ")}</TableHead>
+                <TableHead>{t("Industry", "อุตสาหกรรม")}</TableHead>
+                <TableHead>{t("Source", "แหล่งที่มา")}</TableHead>
+                <TableHead className="text-right">{t("Added", "วันที่เพิ่ม")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

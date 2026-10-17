@@ -8,6 +8,8 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 
 import { portalAcceptQuote } from "../portal-actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function AcceptQuoteButton({
   token,
@@ -17,6 +19,7 @@ export function AcceptQuoteButton({
   quoteId: string
 }) {
   const router = useRouter()
+  const t = useT()
   const [pending, startTransition] = useTransition()
 
   return (
@@ -27,15 +30,15 @@ export function AcceptQuoteButton({
         startTransition(async () => {
           const res = await portalAcceptQuote({ token, quoteId })
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
-          toast.success("Quote accepted")
+          toast.success(t("Quote accepted", "อนุมัติใบเสนอราคาแล้ว"))
           router.refresh()
         })
       }
     >
-      <Check /> Accept
+      <Check /> {t("Accept", "อนุมัติ")}
     </Button>
   )
 }

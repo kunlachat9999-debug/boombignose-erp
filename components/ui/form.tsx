@@ -13,6 +13,8 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 /**
  * Form primitives wiring react-hook-form to the Base UI / shadcn components.
@@ -129,7 +131,10 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? "") : props.children
+  const t = useT()
+  const body = error
+    ? translateMessage(t, String(error?.message ?? ""))
+    : props.children
   if (!body) return null
   return (
     <p

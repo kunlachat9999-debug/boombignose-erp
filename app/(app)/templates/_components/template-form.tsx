@@ -28,6 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { Tables } from "@/lib/types/database"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 type Category = Pick<Tables<"template_categories">, "id" | "name">
 
@@ -79,6 +81,7 @@ export function TemplateForm({
   action: (payload: SubmitPayload) => Promise<{ error?: string }>
   submitLabel: string
 }) {
+  const t = useT()
   const form = useForm<z.input<typeof FormSchema>, unknown, FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -114,12 +117,12 @@ export function TemplateForm({
         .filter(Boolean),
       tags: values.tags
         .split(",")
-        .map((t) => t.trim())
+        .map((tag) => tag.trim())
         .filter(Boolean),
     }
     const res = await action(payload)
     // On success the action redirects; only an error returns here.
-    if (res?.error) toast.error(res.error)
+    if (res?.error) toast.error(translateMessage(t, res.error))
   }
 
   return (
@@ -130,9 +133,9 @@ export function TemplateForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t("Name", "ชื่อ")}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. LINE Sales-Support Bot" {...field} />
+                <Input placeholder={t("e.g. LINE Sales-Support Bot", "เช่น บอท LINE ช่วยงานขาย")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -144,22 +147,20 @@ export function TemplateForm({
           name="categoryId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>{t("Category", "หมวดหมู่")}</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="No category">
+                    <SelectValue placeholder={t("No category", "ไม่มีหมวดหมู่")}>
                       {(value) =>
-                        value && value !== NONE
-                          ? (categories.find((c) => c.id === value)?.name ??
-                            "No category")
-                          : "No category"
+                        (value && value !== NONE && categories.find((c) => c.id === value)?.name) ||
+                        t("No category", "ไม่มีหมวดหมู่")
                       }
                     </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={NONE}>No category</SelectItem>
+                  <SelectItem value={NONE}>{t("No category", "ไม่มีหมวดหมู่")}</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -177,11 +178,11 @@ export function TemplateForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t("Description", "คำอธิบาย")}</FormLabel>
               <FormControl>
                 <Textarea
                   rows={3}
-                  placeholder="What does this automation do?"
+                  placeholder={t("What does this automation do?", "งานอัตโนมัตินี้ทำอะไร?")}
                   {...field}
                 />
               </FormControl>
@@ -196,7 +197,7 @@ export function TemplateForm({
             name="internalValueBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Internal value (฿)</FormLabel>
+                <FormLabel>{t("Internal value (฿)", "มูลค่าภายใน (฿)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -209,7 +210,7 @@ export function TemplateForm({
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <FormDescription>What it saves / is worth to us.</FormDescription>
+                <FormDescription>{t("What it saves / is worth to us.", "ช่วยประหยัดหรือมีมูลค่ากับเราเท่าไร")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -219,7 +220,7 @@ export function TemplateForm({
             name="priceBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price (฿)</FormLabel>
+                <FormLabel>{t("Price (฿)", "ราคาขาย (฿)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -232,7 +233,7 @@ export function TemplateForm({
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <FormDescription>What we charge a client.</FormDescription>
+                <FormDescription>{t("What we charge a client.", "ราคาที่เรียกเก็บจากลูกค้า")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -244,11 +245,11 @@ export function TemplateForm({
           name="reusableNotes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Reusable notes</FormLabel>
+              <FormLabel>{t("Reusable notes", "บันทึกสำหรับใช้ซ้ำ")}</FormLabel>
               <FormControl>
                 <Textarea
                   rows={3}
-                  placeholder="How to reuse this across clients."
+                  placeholder={t("How to reuse this across clients.", "วิธีนำไปใช้ซ้ำกับลูกค้ารายอื่น")}
                   {...field}
                 />
               </FormControl>
@@ -259,23 +260,23 @@ export function TemplateForm({
 
         <div className="space-y-3">
           <div className="space-y-1">
-            <FormLabel>Implementation checklist</FormLabel>
+            <FormLabel>{t("Implementation checklist", "ขั้นตอนการติดตั้ง")}</FormLabel>
             <p className="text-muted-foreground text-sm">
-              The steps to ship this for a client. Add or remove rows.
+              {t("The steps to ship this for a client. Add or remove rows.", "ขั้นตอนการส่งมอบให้ลูกค้า เพิ่มหรือลบแถวได้")}
             </p>
           </div>
           <div className="space-y-2">
             {fields.map((row, index) => (
               <div key={row.id} className="flex items-center gap-2">
                 <Input
-                  placeholder={`Step ${index + 1}`}
+                  placeholder={t(`Step ${index + 1}`, `ขั้นตอนที่ ${index + 1}`)}
                   {...form.register(`checklist.${index}.value` as const)}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label="Remove step"
+                  aria-label={t("Remove step", "ลบขั้นตอน")}
                   onClick={() => (fields.length > 1 ? remove(index) : form.setValue(`checklist.${index}.value`, ""))}
                 >
                   <Trash2 />
@@ -289,7 +290,7 @@ export function TemplateForm({
             size="sm"
             onClick={() => append({ value: "" })}
           >
-            <Plus /> Add step
+            <Plus /> {t("Add step", "เพิ่มขั้นตอน")}
           </Button>
         </div>
 
@@ -298,11 +299,11 @@ export function TemplateForm({
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tags</FormLabel>
+              <FormLabel>{t("Tags", "แท็ก")}</FormLabel>
               <FormControl>
                 <Input placeholder="line, bot, n8n" {...field} />
               </FormControl>
-              <FormDescription>Comma-separated.</FormDescription>
+              <FormDescription>{t("Comma-separated.", "คั่นด้วยเครื่องหมายจุลภาค")}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -313,7 +314,7 @@ export function TemplateForm({
             {submitLabel}
           </Button>
           <Button type="button" variant="ghost" render={<Link href="/templates" />}>
-            Cancel
+            {t("Cancel", "ยกเลิก")}
           </Button>
         </div>
       </form>

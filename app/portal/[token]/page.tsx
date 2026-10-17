@@ -28,6 +28,8 @@ import {
 
 import { AcceptQuoteButton } from "./_components/accept-quote-button"
 import { MarkInvoicePaidButton } from "./_components/mark-invoice-paid-button"
+import { LocaleToggle } from "@/components/locale-provider"
+import { getT } from "@/lib/i18n-server"
 
 // PUBLIC route (no session). Served with the service-role admin client, scoped
 // strictly to the one client resolved from the opaque token. Never cache.
@@ -39,16 +41,19 @@ export const dynamic = "force-dynamic"
 const PORTAL_QUOTE_STATUSES: Enums<"quote_status">[] = ["sent", "accepted", "declined", "expired", "converted"]
 const PORTAL_INVOICE_STATUSES: Enums<"invoice_status">[] = ["sent", "partially_paid", "paid", "overdue"]
 
-function Unavailable() {
+async function Unavailable() {
+  const t = await getT()
   return (
     <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
       <div className="bg-muted flex size-12 items-center justify-center rounded-full">
         <Lock className="text-muted-foreground size-5" />
       </div>
-      <h1 className="text-xl font-semibold">Portal unavailable</h1>
+      <h1 className="text-xl font-semibold">{t("Portal unavailable", "พอร์ทัลใช้งานไม่ได้")}</h1>
       <p className="text-muted-foreground text-sm">
-        This link is no longer active. Please contact your account manager for an
-        up-to-date link.
+        {t(
+          "This link is no longer active. Please contact your account manager for an up-to-date link.",
+          "ลิงก์นี้ไม่สามารถใช้งานได้แล้ว กรุณาติดต่อผู้ดูแลบัญชีของคุณเพื่อขอลิงก์ใหม่"
+        )}
       </p>
     </main>
   )
@@ -60,6 +65,7 @@ export default async function ClientPortalPage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
+  const t = await getT()
   if (!token) return <Unavailable />
 
   const supabase = createAdminClient()
@@ -163,15 +169,18 @@ export default async function ClientPortalPage({
     itemsByInvoice.set(it.invoice_id, list)
   }
 
-  const orgName = orgRes.data?.name ?? "Workspace"
+  const orgName = orgRes.data?.name ?? t("Workspace", "พื้นที่ทำงาน")
 
   return (
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-10">
       <header className="space-y-1">
-        <p className="text-muted-foreground text-sm font-medium">{orgName}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-muted-foreground text-sm font-medium">{orgName}</p>
+          <LocaleToggle />
+        </div>
         <h1 className="text-2xl font-semibold tracking-tight">{client.name}</h1>
         <p className="text-muted-foreground text-sm">
-          Your quotes, invoices, and projects.
+          {t("Your quotes, invoices, and projects.", "ใบเสนอราคา ใบแจ้งหนี้ และโปรเจกต์ของคุณ")}
         </p>
       </header>
 
@@ -179,20 +188,20 @@ export default async function ClientPortalPage({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="size-4" /> Quotes
+            <FileText className="size-4" /> {t("Quotes", "ใบเสนอราคา")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {quotes.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No quotes yet.</p>
+            <p className="text-muted-foreground text-sm">{t("No quotes yet.", "ยังไม่มีใบเสนอราคา")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Number</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="w-32 text-right" aria-label="Actions" />
+                  <TableHead>{t("Number", "เลขที่")}</TableHead>
+                  <TableHead>{t("Status", "สถานะ")}</TableHead>
+                  <TableHead className="text-right">{t("Total", "ยอดรวม")}</TableHead>
+                  <TableHead className="w-32 text-right" aria-label={t("Actions", "การดำเนินการ")} />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -222,12 +231,12 @@ export default async function ClientPortalPage({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Receipt className="size-4" /> Invoices
+            <Receipt className="size-4" /> {t("Invoices", "ใบแจ้งหนี้")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {invoices.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No invoices yet.</p>
+            <p className="text-muted-foreground text-sm">{t("No invoices yet.", "ยังไม่มีใบแจ้งหนี้")}</p>
           ) : (
             invoices.map((inv) => {
               const paid = paidByInvoice.get(inv.id) ?? 0
@@ -245,14 +254,14 @@ export default async function ClientPortalPage({
                       <InvoiceStatusBadge status={effectiveStatus} />
                     </div>
                     {canPay ? (
-                      pendingInvoiceIds.has(inv.id) ? <span>รอตรวจสอบ / Pending verification</span> : <MarkInvoicePaidButton token={token} invoiceId={inv.id} />
+                      pendingInvoiceIds.has(inv.id) ? <span>{t("Pending verification", "รอตรวจสอบ")}</span> : <MarkInvoicePaidButton token={token} invoiceId={inv.id} />
                     ) : null}
                   </div>
 
                   <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
                     <div className="space-y-0.5">
                       <dt className="text-muted-foreground text-xs font-medium">
-                        Amount
+                        {t("Amount", "จำนวนเงิน")}
                       </dt>
                       <dd className="tabular-nums">
                         {formatTHB(inv.amount_satang)}
@@ -260,7 +269,7 @@ export default async function ClientPortalPage({
                     </div>
                     <div className="space-y-0.5">
                       <dt className="text-muted-foreground text-xs font-medium">
-                        Outstanding
+                        {t("Outstanding", "ค้างชำระ")}
                       </dt>
                       <dd
                         className={
@@ -274,13 +283,13 @@ export default async function ClientPortalPage({
                     </div>
                     <div className="space-y-0.5">
                       <dt className="text-muted-foreground text-xs font-medium">
-                        Issue date
+                        {t("Issue date", "วันที่ออก")}
                       </dt>
                       <dd>{inv.issue_date ?? "—"}</dd>
                     </div>
                     <div className="space-y-0.5">
                       <dt className="text-muted-foreground text-xs font-medium">
-                        Due date
+                        {t("Due date", "วันครบกำหนด")}
                       </dt>
                       <dd>{inv.due_date ?? "—"}</dd>
                     </div>
@@ -290,9 +299,9 @@ export default async function ClientPortalPage({
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Description</TableHead>
-                          <TableHead className="text-right">Qty</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead>{t("Description", "รายละเอียด")}</TableHead>
+                          <TableHead className="text-right">{t("Qty", "จำนวน")}</TableHead>
+                          <TableHead className="text-right">{t("Amount", "จำนวนเงิน")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -323,12 +332,12 @@ export default async function ClientPortalPage({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <FolderKanban className="size-4" /> Projects
+            <FolderKanban className="size-4" /> {t("Projects", "โปรเจกต์")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {projects.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No projects yet.</p>
+            <p className="text-muted-foreground text-sm">{t("No projects yet.", "ยังไม่มีโปรเจกต์")}</p>
           ) : (
             <ul className="divide-y">
               {projects.map((p) => (

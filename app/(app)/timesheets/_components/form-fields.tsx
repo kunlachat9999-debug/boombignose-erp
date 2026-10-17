@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useT } from "@/components/locale-provider"
 
 export type Option = { value: string; label: string }
 
@@ -31,7 +32,7 @@ export function SelectField({
   placeholder,
   options,
   optional,
-  noneLabel = "None",
+  noneLabel,
   description,
 }: {
   name: string
@@ -42,6 +43,7 @@ export function SelectField({
   noneLabel?: string
   description?: string
 }) {
+  const t = useT()
   return (
     <FormField
       name={name}
@@ -67,7 +69,7 @@ export function SelectField({
                 </SelectTrigger>
                 <SelectContent>
                   {optional ? (
-                    <SelectItem value={NONE}>{noneLabel}</SelectItem>
+                    <SelectItem value={NONE}>{noneLabel ?? t("None", "ไม่ระบุ")}</SelectItem>
                   ) : null}
                   {options.map((o) => (
                     <SelectItem key={o.value} value={o.value}>

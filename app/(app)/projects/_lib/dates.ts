@@ -1,3 +1,5 @@
+import type { T } from "@/lib/i18n"
+
 /**
  * Deadline display helpers for the Projects module.
  * Dates are stored as YYYY-MM-DD (date columns) with no time component.
@@ -30,7 +32,7 @@ export type DeadlineMeta = {
  *  - due within 7 days → warning
  *  - otherwise → default (no note)
  */
-export function deadlineMeta(date: string | null): DeadlineMeta | null {
+export function deadlineMeta(t: T, date: string | null): DeadlineMeta | null {
   if (!date) return null
   const label = fmt.format(new Date(`${date}T00:00:00`))
   const diff = daysUntil(date)
@@ -39,15 +41,18 @@ export function deadlineMeta(date: string | null): DeadlineMeta | null {
     const d = Math.abs(diff)
     return {
       label,
-      note: d === 1 ? "1 day overdue" : `${d} days overdue`,
+      note: t(d === 1 ? "1 day overdue" : `${d} days overdue`, `เลยกำหนด ${d} วัน`),
       tone: "danger",
     }
   }
-  if (diff === 0) return { label, note: "Due today", tone: "warning" }
+  if (diff === 0) return { label, note: t("Due today", "ครบกำหนดวันนี้"), tone: "warning" }
   if (diff <= 7) {
     return {
       label,
-      note: diff === 1 ? "Due tomorrow" : `In ${diff} days`,
+      note:
+        diff === 1
+          ? t("Due tomorrow", "ครบกำหนดพรุ่งนี้")
+          : t(`In ${diff} days`, `อีก ${diff} วัน`),
       tone: "warning",
     }
   }

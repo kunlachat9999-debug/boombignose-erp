@@ -28,6 +28,7 @@ import {
 import type { Option } from "./_components/form-fields"
 import { LogTimeForm } from "./_components/log-time-form"
 import { DeleteTimeEntryButton } from "./_components/delete-time-entry-button"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -54,6 +55,7 @@ type EntryRow = {
 
 export default async function TimesheetsPage() {
   await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const month = currentMonthKey()
   const today = todayISO()
@@ -106,44 +108,47 @@ export default async function TimesheetsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Timesheets"
-        description="Log billable hours and track utilization across projects."
+        title={t("Timesheets", "บันทึกเวลา")}
+        description={t(
+          "Log billable hours and track utilization across projects.",
+          "บันทึกชั่วโมงที่เรียกเก็บได้ และติดตามการใช้เวลาของทุกโปรเจกต์"
+        )}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <StatCard
-          label="Hours this month"
-          value={`${minutesToHours(monthMinutes).toFixed(1)}h`}
+          label={t("Hours this month", "ชั่วโมงเดือนนี้")}
+          value={t(`${minutesToHours(monthMinutes).toFixed(1)}h`, `${minutesToHours(monthMinutes).toFixed(1)} ชม.`)}
           icon={Timer}
-          hint="Time logged this month"
+          hint={t("Time logged this month", "เวลาที่บันทึกในเดือนนี้")}
         />
         <StatCard
-          label="Billable value"
+          label={t("Billable value", "มูลค่าที่เรียกเก็บได้")}
           value={formatTHB(monthBillable)}
           icon={Coins}
           tone="positive"
-          hint="This month, billable hours × rate"
+          hint={t("This month, billable hours × rate", "เดือนนี้ ชั่วโมงที่เรียกเก็บได้ × อัตรา")}
         />
         <StatCard
-          label="Utilization"
+          label={t("Utilization", "อัตราการใช้เวลา")}
           value={`${Math.round(monthUtil * 100)}%`}
           icon={Gauge}
-          hint="Billable ÷ total minutes this month"
+          hint={t("Billable ÷ total minutes this month", "เวลาที่เรียกเก็บได้ ÷ เวลารวมเดือนนี้")}
         />
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Clock className="size-4" /> Log time
+            <Clock className="size-4" /> {t("Log time", "บันทึกเวลา")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {projectOptions.length === 0 ? (
             <EmptyState
               icon={Clock}
-              title="No projects yet"
-              description="Create a project before logging time against it."
+              title={t("No projects yet", "ยังไม่มีโปรเจกต์")}
+              description={t("Create a project before logging time against it.", "สร้างโปรเจกต์ก่อนบันทึกเวลา")}
               className="border-0"
             />
           ) : (
@@ -154,27 +159,27 @@ export default async function TimesheetsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent entries</CardTitle>
+          <CardTitle className="text-base">{t("Recent entries", "รายการล่าสุด")}</CardTitle>
         </CardHeader>
         <CardContent>
           {entries.length === 0 ? (
             <EmptyState
               icon={Timer}
-              title="No time logged yet"
-              description="Log your first hours to start tracking utilization."
+              title={t("No time logged yet", "ยังไม่มีการบันทึกเวลา")}
+              description={t("Log your first hours to start tracking utilization.", "บันทึกชั่วโมงแรกเพื่อเริ่มติดตามการใช้เวลา")}
               className="border-0"
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Who</TableHead>
-                  <TableHead className="text-right">Hours</TableHead>
-                  <TableHead>Billable</TableHead>
-                  <TableHead className="text-right">Value</TableHead>
-                  <TableHead className="w-10" aria-label="Actions" />
+                  <TableHead>{t("Date", "วันที่")}</TableHead>
+                  <TableHead>{t("Project", "โปรเจกต์")}</TableHead>
+                  <TableHead>{t("Who", "ผู้บันทึก")}</TableHead>
+                  <TableHead className="text-right">{t("Hours", "ชั่วโมง")}</TableHead>
+                  <TableHead>{t("Billable", "เรียกเก็บได้")}</TableHead>
+                  <TableHead className="text-right">{t("Value", "มูลค่า")}</TableHead>
+                  <TableHead className="w-10" aria-label={t("Actions", "การดำเนินการ")} />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -196,9 +201,9 @@ export default async function TimesheetsPage() {
                       </TableCell>
                       <TableCell>
                         {e.billable ? (
-                          <Badge variant="secondary">Billable</Badge>
+                          <Badge variant="secondary">{t("Billable", "เรียกเก็บได้")}</Badge>
                         ) : (
-                          <Badge variant="outline">Non-billable</Badge>
+                          <Badge variant="outline">{t("Non-billable", "ไม่เรียกเก็บ")}</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
@@ -207,9 +212,10 @@ export default async function TimesheetsPage() {
                       <TableCell className="text-right">
                         <DeleteTimeEntryButton
                           id={e.id}
-                          label={`${minutesToHours(e.minutes).toFixed(2)}h on ${
-                            e.projects?.name ?? "project"
-                          }`}
+                          label={t(
+                            `${minutesToHours(e.minutes).toFixed(2)}h on ${e.projects?.name ?? "project"}`,
+                            `${minutesToHours(e.minutes).toFixed(2)} ชม. ใน ${e.projects?.name ?? "โปรเจกต์"}`
+                          )}
                         />
                       </TableCell>
                     </TableRow>

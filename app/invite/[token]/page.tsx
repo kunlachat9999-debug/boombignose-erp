@@ -16,6 +16,7 @@ import {
 
 import { signOutTo } from "@/app/onboarding/actions"
 import { AcceptInvitationButton } from "./accept-button"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -25,6 +26,7 @@ export default async function InvitePage({
   params: Promise<{ token: string }>
 }) {
   const { token } = await params
+  const t = await getT()
 
   // Must be signed in to accept (middleware also guards this route).
   const supabase = await createClient()
@@ -50,7 +52,7 @@ export default async function InvitePage({
       (!invite.expires_at || invite.expires_at > new Date().toISOString()))
   )
 
-  let orgName = "a workspace"
+  let orgName = t("a workspace", "พื้นที่ทำงาน")
   if (isValid) {
     const { data: org } = await admin
       .from("organizations")
@@ -73,12 +75,20 @@ export default async function InvitePage({
             )}
           </div>
           <CardTitle>
-            {isValid ? `Join ${orgName}` : "Invitation unavailable"}
+            {isValid
+              ? t(`Join ${orgName}`, `เข้าร่วม ${orgName}`)
+              : t("Invitation unavailable", "คำเชิญใช้งานไม่ได้")}
           </CardTitle>
           <CardDescription>
             {isValid
-              ? `You've been invited to join ${orgName} as ${invite!.role} on BoomBigNose Company OS.`
-              : "This invitation is unavailable for this account, revoked, or expired. Use the email account that received the link."}
+              ? t(
+                  `You've been invited to join ${orgName} as ${invite!.role} on BoomBigNose Company OS.`,
+                  `คุณได้รับคำเชิญให้เข้าร่วม ${orgName} ในบทบาท ${invite!.role} บน BoomBigNose Company OS`
+                )
+              : t(
+                  "This invitation is unavailable for this account, revoked, or expired. Use the email account that received the link.",
+                  "คำเชิญนี้ใช้กับบัญชีนี้ไม่ได้ ถูกยกเลิก หรือหมดอายุแล้ว กรุณาใช้บัญชีอีเมลที่ได้รับลิงก์"
+                )}
           </CardDescription>
         </CardHeader>
 
@@ -86,7 +96,7 @@ export default async function InvitePage({
           <>
             <CardContent>
               <p className="text-muted-foreground text-center text-sm">
-                Signed in as <span className="font-medium">{user.email}</span>
+                {t("Signed in as ", "เข้าสู่ระบบในชื่อ ")}<span className="font-medium">{user.email}</span>
               </p>
             </CardContent>
             <CardFooter>
@@ -96,10 +106,10 @@ export default async function InvitePage({
         ) : (
           <CardFooter className="flex-col gap-3">
             <form action={signOutTo.bind(null, `/invite/${encodeURIComponent(token)}`)} className="w-full">
-              <Button type="submit" className="w-full">Use another account</Button>
+              <Button type="submit" className="w-full">{t("Use another account", "ใช้บัญชีอื่น")}</Button>
             </form>
             <Button variant="outline" className="w-full" render={<Link href="/onboarding" />}>
-              Continue to your workspace
+              {t("Continue to your workspace", "ไปที่พื้นที่ทำงานของคุณ")}
             </Button>
           </CardFooter>
         )}

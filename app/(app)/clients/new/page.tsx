@@ -6,14 +6,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ClientForm } from "../_components/client-form"
 import { createClient } from "../actions"
+import { getT } from "@/lib/i18n-server"
 
-export default function NewClientPage() {
+export default async function NewClientPage() {
+  const t = await getT()
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
-      <PageHeader title="New client" description="Add someone you work with.">
+      <PageHeader
+        title={t("New client", "เพิ่มลูกค้า")}
+        description={t("Add someone you work with.", "เพิ่มคนที่คุณทำงานด้วย")}
+      >
         <Button variant="ghost" size="sm" render={<Link href="/clients" />}>
           <ArrowLeft />
-          Back
+          {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -21,7 +26,7 @@ export default function NewClientPage() {
         <CardContent>
           <ClientForm
             action={createClient}
-            submitLabel="Create client"
+            submitLabel={t("Create client", "สร้างลูกค้า")}
             redirectsOnSuccess
           />
         </CardContent>

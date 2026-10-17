@@ -17,6 +17,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -28,12 +29,20 @@ function fmtHours(hours: number): string {
 export default async function ReportsPage() {
   const { months, rangeLabel, revenue, hours, totalRevenueSatang } =
     await getReportData()
+  const t = await getT()
+  // _data.ts uses fixed English fallbacks for rows without a client/project.
+  const rowName = (name: string) =>
+    name === "Unassigned"
+      ? t("Unassigned", "ไม่ระบุลูกค้า")
+      : name === "No project"
+        ? t("No project", "ไม่ระบุโปรเจกต์")
+        : name
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reports"
-        description={`Operational reports · ${rangeLabel}`}
+        title={t("Reports", "รายงาน")}
+        description={t(`Operational reports · ${rangeLabel}`, `รายงานการดำเนินงาน · ${rangeLabel}`)}
       >
         <Button
           variant="outline"
@@ -41,61 +50,61 @@ export default async function ReportsPage() {
             <Link href="/reports/print" target="_blank" rel="noopener" />
           }
         >
-          <Printer /> Print / PDF
+          <Printer /> {t("Print / PDF", "พิมพ์ / PDF")}
         </Button>
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <StatCard
-          label="Verified cash received"
+          label={t("Verified cash received", "เงินเข้าที่ตรวจสอบแล้ว")}
           value={formatTHB(totalRevenueSatang)}
           icon={TrendingUp}
           tone="positive"
-          hint="Verified receipts in range · Bangkok month"
+          hint={t("Verified receipts in range · Bangkok month", "ยอดรับชำระที่ตรวจสอบแล้วในช่วงเวลา · ตามเดือนเวลากรุงเทพฯ")}
         />
         <StatCard
-          label="Billable hours"
+          label={t("Billable hours", "ชั่วโมงที่เรียกเก็บได้")}
           value={fmtHours(hours.billableHours)}
           icon={Timer}
-          hint="Logged & billable in range"
+          hint={t("Logged & billable in range", "บันทึกและเรียกเก็บได้ในช่วงเวลา")}
         />
         <StatCard
-          label="Total hours"
+          label={t("Total hours", "ชั่วโมงรวม")}
           value={fmtHours(hours.totalHours)}
           icon={Clock}
-          hint="All time logged in range"
+          hint={t("All time logged in range", "เวลาทั้งหมดที่บันทึกในช่วงเวลา")}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Verified cash by client × month</CardTitle>
+          <CardTitle className="text-base">{t("Verified cash by client × month", "เงินเข้าที่ตรวจสอบแล้ว แยกตามลูกค้า × เดือน")}</CardTitle>
         </CardHeader>
         <CardContent>
           {revenue.rowKeys.length === 0 ? (
             <EmptyState
               icon={BarChart3}
-              title="No payments in range"
-              description="Only verified receipts appear here by client and month."
+              title={t("No payments in range", "ไม่มีการชำระเงินในช่วงเวลานี้")}
+              description={t("Only verified receipts appear here by client and month.", "แสดงเฉพาะยอดที่ตรวจสอบแล้ว แยกตามลูกค้าและเดือน")}
               className="border-0"
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Client</TableHead>
+                  <TableHead>{t("Client", "ลูกค้า")}</TableHead>
                   {months.map((m) => (
                     <TableHead key={m} className="text-right">
                       {m}
                     </TableHead>
                   ))}
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right">{t("Total", "รวม")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {revenue.rowKeys.map((client) => (
                   <TableRow key={client}>
-                    <TableCell className="font-medium">{client}</TableCell>
+                    <TableCell className="font-medium">{rowName(client)}</TableCell>
                     {months.map((m) => (
                       <TableCell
                         key={m}
@@ -110,7 +119,7 @@ export default async function ReportsPage() {
                   </TableRow>
                 ))}
                 <TableRow className="border-t-2">
-                  <TableCell className="font-semibold">Total</TableCell>
+                  <TableCell className="font-semibold">{t("Total", "รวม")}</TableCell>
                   {months.map((m) => (
                     <TableCell
                       key={m}
@@ -131,31 +140,31 @@ export default async function ReportsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Hours by project</CardTitle>
+          <CardTitle className="text-base">{t("Hours by project", "ชั่วโมงแยกตามโปรเจกต์")}</CardTitle>
         </CardHeader>
         <CardContent>
           {hours.projects.length === 0 ? (
             <EmptyState
               icon={Timer}
-              title="No time logged in range"
-              description="Logged time entries will roll up here by project."
+              title={t("No time logged in range", "ไม่มีการบันทึกเวลาในช่วงนี้")}
+              description={t("Logged time entries will roll up here by project.", "เวลาที่บันทึกจะสรุปรวมที่นี่ตามโปรเจกต์")}
               className="border-0"
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead className="text-right">Total hours</TableHead>
-                  <TableHead className="text-right">Billable hours</TableHead>
-                  <TableHead className="text-right">Non-billable</TableHead>
+                  <TableHead>{t("Project", "โปรเจกต์")}</TableHead>
+                  <TableHead className="text-right">{t("Total hours", "ชั่วโมงรวม")}</TableHead>
+                  <TableHead className="text-right">{t("Billable hours", "ชั่วโมงที่เรียกเก็บได้")}</TableHead>
+                  <TableHead className="text-right">{t("Non-billable", "ไม่เรียกเก็บ")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {hours.projects.map((p) => (
                   <TableRow key={p.project_name}>
                     <TableCell className="font-medium">
-                      {p.project_name}
+                      {rowName(p.project_name)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {fmtHours(p.totalHours)}
@@ -169,7 +178,7 @@ export default async function ReportsPage() {
                   </TableRow>
                 ))}
                 <TableRow className="border-t-2">
-                  <TableCell className="font-semibold">Total</TableCell>
+                  <TableCell className="font-semibold">{t("Total", "รวม")}</TableCell>
                   <TableCell className="text-right font-semibold tabular-nums">
                     {fmtHours(hours.totalHours)}
                   </TableCell>

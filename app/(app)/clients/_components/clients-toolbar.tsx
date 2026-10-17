@@ -8,6 +8,7 @@ import { Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { configToHref, type ViewConfig } from "@/app/(app)/views/view-config"
+import { useT } from "@/components/locale-provider"
 
 /**
  * URL-driven text search for the Clients list. Writes `?q=` so the filter is
@@ -15,6 +16,7 @@ import { configToHref, type ViewConfig } from "@/app/(app)/views/view-config"
  */
 export function ClientsToolbar({ q }: { q: string }) {
   const router = useRouter()
+  const t = useT()
   const pathname = usePathname()
   const [search, setSearch] = useState(q)
   // Re-sync the input when the URL's `q` changes (e.g. loading a saved view),
@@ -36,7 +38,7 @@ export function ClientsToolbar({ q }: { q: string }) {
         <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2" />
         <Input
           value={search}
-          placeholder="Search clients…"
+          placeholder={t("Search clients…", "ค้นหาลูกค้า…")}
           className="h-8 pl-8"
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => {
@@ -51,7 +53,7 @@ export function ClientsToolbar({ q }: { q: string }) {
       {q ? (
         <Button variant="ghost" size="sm" render={<Link href={pathname} />}>
           <X />
-          Clear
+          {t("Clear", "ล้าง")}
         </Button>
       ) : null}
     </div>

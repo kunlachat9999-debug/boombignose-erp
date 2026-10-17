@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server"
 import { requireOrgContext } from "@/lib/auth"
 import { todayISO } from "@/lib/dates"
 import { formatTHB, satangToBaht } from "@/lib/money"
-import type { Enums } from "@/lib/types/database"
 
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -22,15 +21,10 @@ import {
 import { SubscriptionControls } from "../../_components/subscription-controls"
 import { SubscriptionStatusBadge } from "../../_components/subscription-status-badge"
 import type { Option } from "../../_components/form-fields"
+import { enumLabel } from "@/lib/enum-labels"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
-
-const INTERVAL_LABEL: Record<Enums<"recurring_interval">, string> = {
-  weekly: "Weekly",
-  monthly: "Monthly",
-  quarterly: "Quarterly",
-  yearly: "Yearly",
-}
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -48,6 +42,7 @@ export default async function SubscriptionDetailPage({
 }) {
   const { id } = await params
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const [subRes, clientsRes, projectsRes] = await Promise.all([
@@ -99,39 +94,39 @@ export default async function SubscriptionDetailPage({
     <div className="space-y-6">
       <PageHeader
         title={sub.name}
-        description={sub.clients?.name ?? "Subscription"}
+        description={sub.clients?.name ?? t("Subscription", "รายการสมัครสมาชิก")}
       >
         <Button variant="outline" render={<Link href="/finance/subscriptions" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-base">Overview</CardTitle>
+          <CardTitle className="text-base">{t("Overview", "ภาพรวม")}</CardTitle>
           <SubscriptionStatusBadge status={sub.status} />
         </CardHeader>
         <CardContent className="space-y-4">
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Field label="Amount" value={formatTHB(sub.amount_satang)} />
-            <Field label="Interval" value={INTERVAL_LABEL[sub.interval]} />
-            <Field label="Client" value={sub.clients?.name ?? "—"} />
-            <Field label="Project" value={sub.projects?.name ?? "—"} />
-            <Field label="Start date" value={sub.start_date} />
-            <Field label="Next run" value={sub.next_run_date} />
+            <Field label={t("Amount", "จำนวนเงิน")} value={formatTHB(sub.amount_satang)} />
+            <Field label={t("Interval", "รอบ")} value={enumLabel(t, "recurring_interval", sub.interval)} />
+            <Field label={t("Client", "ลูกค้า")} value={sub.clients?.name ?? "—"} />
+            <Field label={t("Project", "โปรเจกต์")} value={sub.projects?.name ?? "—"} />
+            <Field label={t("Start date", "วันที่เริ่ม")} value={sub.start_date} />
+            <Field label={t("Next run", "รอบถัดไป")} value={sub.next_run_date} />
             <Field
-              label="Last generated"
+              label={t("Last generated", "สร้างล่าสุด")}
               value={sub.last_generated_on ?? "—"}
             />
             <Field
-              label="Auto-generate"
-              value={sub.auto_generate ? "On" : "Off"}
+              label={t("Auto-generate", "สร้างอัตโนมัติ")}
+              value={sub.auto_generate ? t("On", "เปิด") : t("Off", "ปิด")}
             />
           </dl>
           {sub.notes ? (
             <>
               <Separator />
-              <Field label="Notes" value={sub.notes} />
+              <Field label={t("Notes", "หมายเหตุ")} value={sub.notes} />
             </>
           ) : null}
           <Separator />
@@ -148,14 +143,14 @@ export default async function SubscriptionDetailPage({
 
       {canManage ? <Card className="max-w-3xl">
         <CardHeader>
-          <CardTitle className="text-base">Edit subscription</CardTitle>
+          <CardTitle className="text-base">{t("Edit subscription", "แก้ไขรายการสมัครสมาชิก")}</CardTitle>
         </CardHeader>
         <CardContent>
           <SubscriptionForm
             clients={clients}
             projects={projects}
             defaultValues={defaultValues}
-            submitLabel="Save changes"
+            submitLabel={t("Save changes", "บันทึกการเปลี่ยนแปลง")}
             action={saveSubscription}
           />
         </CardContent>

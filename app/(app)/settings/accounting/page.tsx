@@ -18,6 +18,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { AccountingConnectionForm } from "./_components/accounting-connection-form"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -29,15 +30,16 @@ const PROVIDER_LABEL: Record<Enums<"accounting_provider">, string> = {
 
 const STATUS_META: Record<
   Enums<"accounting_conn_status">,
-  { label: string; variant: "secondary" | "outline" | "destructive" }
+  { label: string; th: string; variant: "secondary" | "outline" | "destructive" }
 > = {
-  connected: { label: "Connected", variant: "secondary" },
-  disconnected: { label: "Not connected", variant: "outline" },
-  error: { label: "Error", variant: "destructive" },
+  connected: { label: "Connected", th: "เชื่อมต่อแล้ว", variant: "secondary" },
+  disconnected: { label: "Not connected", th: "ยังไม่เชื่อมต่อ", variant: "outline" },
+  error: { label: "Error", th: "ผิดพลาด", variant: "destructive" },
 }
 
 export default async function AccountingSettingsPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const canEdit = ctx.role === "owner" || ctx.role === "admin"
 
@@ -55,50 +57,51 @@ export default async function AccountingSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Accounting sync"
-        description="Connect your book-of-record to scaffold invoice syncing."
+        title={t("Accounting sync", "ซิงก์ระบบบัญชี")}
+        description={t("Connect your book-of-record to scaffold invoice syncing.", "เชื่อมต่อระบบบัญชีหลักเพื่อซิงก์ใบแจ้งหนี้")}
       >
         <Button variant="outline" render={<Link href="/settings" />}>
-          <ArrowLeft /> Settings
+          <ArrowLeft /> {t("Settings", "ตั้งค่า")}
         </Button>
       </PageHeader>
 
       <Alert>
         <PlugZap className="size-4" />
-        <AlertTitle>Sync scaffold — not an accounting engine</AlertTitle>
+        <AlertTitle>{t("Sync scaffold — not an accounting engine", "โครงการซิงก์ — ไม่ใช่ระบบบัญชี")}</AlertTitle>
         <AlertDescription>
-          This maps invoices to your provider (FlowAccount, PEAK or Xero) and
-          records the mapping. It does not create tax invoices or compute VAT,
-          and the live push is stubbed in this build.
+          {t(
+            "This maps invoices to your provider (FlowAccount, PEAK or Xero) and records the mapping. It does not create tax invoices or compute VAT, and the live push is stubbed in this build.",
+            "ระบบจะจับคู่ใบแจ้งหนี้กับผู้ให้บริการ (FlowAccount, PEAK หรือ Xero) และบันทึกการจับคู่ไว้ ไม่ได้ออกใบกำกับภาษีหรือคำนวณ VAT และในเวอร์ชันนี้ยังไม่ได้ส่งข้อมูลจริง"
+          )}
         </AlertDescription>
       </Alert>
 
       <Card className="max-w-2xl">
         <CardHeader className="flex-row items-center justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-base">Connection</CardTitle>
+            <CardTitle className="text-base">{t("Connection", "การเชื่อมต่อ")}</CardTitle>
             <CardDescription>
               {isConnected && conn
-                ? `Syncing to ${PROVIDER_LABEL[conn.provider]}.`
-                : "No accounting provider connected yet."}
+                ? t(`Syncing to ${PROVIDER_LABEL[conn.provider]}.`, `กำลังซิงก์กับ ${PROVIDER_LABEL[conn.provider]}`)
+                : t("No accounting provider connected yet.", "ยังไม่ได้เชื่อมต่อระบบบัญชี")}
             </CardDescription>
           </div>
           <Badge variant={statusMeta.variant} className="shrink-0">
-            {statusMeta.label}
+            {t(statusMeta.label, statusMeta.th)}
           </Badge>
         </CardHeader>
         <CardContent className="space-y-4">
           {conn ? (
             <dl className="divide-y text-sm">
               <div className="flex items-center justify-between py-2.5">
-                <dt className="text-muted-foreground">Provider</dt>
+                <dt className="text-muted-foreground">{t("Provider", "ผู้ให้บริการ")}</dt>
                 <dd className="font-medium">
                   {PROVIDER_LABEL[conn.provider]}
                 </dd>
               </div>
               <div className="flex items-center justify-between py-2.5">
-                <dt className="text-muted-foreground">Status</dt>
-                <dd className="font-medium">{statusMeta.label}</dd>
+                <dt className="text-muted-foreground">{t("Status", "สถานะ")}</dt>
+                <dd className="font-medium">{t(statusMeta.label, statusMeta.th)}</dd>
               </div>
             </dl>
           ) : null}
@@ -110,9 +113,9 @@ export default async function AccountingSettingsPage() {
           ) : (
             <Alert>
               <Lock className="size-4" />
-              <AlertTitle>View only</AlertTitle>
+              <AlertTitle>{t("View only", "ดูอย่างเดียว")}</AlertTitle>
               <AlertDescription>
-                Only an owner or admin can change the accounting connection.
+                {t("Only an owner or admin can change the accounting connection.", "เฉพาะเจ้าของหรือผู้ดูแลเท่านั้นที่เปลี่ยนการเชื่อมต่อระบบบัญชีได้")}
               </AlertDescription>
             </Alert>
           )}

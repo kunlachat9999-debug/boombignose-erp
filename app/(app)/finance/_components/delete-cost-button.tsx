@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { deleteCost } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function DeleteCostButton({
   id,
@@ -26,6 +28,7 @@ export function DeleteCostButton({
   id: string
   label: string
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -36,7 +39,7 @@ export function DeleteCostButton({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Delete ${label}`}
+            aria-label={t(`Delete ${label}`, `ลบ${label}`)}
           >
             <Trash2 className="text-muted-foreground" />
           </Button>
@@ -44,13 +47,16 @@ export function DeleteCostButton({
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this cost?</AlertDialogTitle>
+          <AlertDialogTitle>{t("Delete this cost?", "ลบค่าใช้จ่ายนี้?")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {label} will be permanently removed. This cannot be undone.
+            {t(
+              `${label} will be permanently removed. This cannot be undone.`,
+              `${label} จะถูกลบถาวร ไม่สามารถย้อนกลับได้`
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("Cancel", "ยกเลิก")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
             onClick={(e) => {
@@ -58,15 +64,15 @@ export function DeleteCostButton({
               startTransition(async () => {
                 const res = await deleteCost({ id })
                 if (res?.error) {
-                  toast.error(res.error)
+                  toast.error(translateMessage(t, res.error))
                   return
                 }
-                toast.success("Cost deleted")
+                toast.success(t("Cost deleted", "ลบค่าใช้จ่ายแล้ว"))
                 setOpen(false)
               })
             }}
           >
-            Delete
+            {t("Delete", "ลบ")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,13 +1,20 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist, Geist_Mono, Noto_Sans_Thai } from "next/font/google"
 import "./globals.css"
 
+import { LocaleProvider } from "@/components/locale-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { getLocale } from "@/lib/i18n-server"
 
 const fontSans = Geist({
-  variable: "--font-sans",
+  variable: "--font-geist-sans",
   subsets: ["latin"],
+})
+
+const fontThai = Noto_Sans_Thai({
+  variable: "--font-thai",
+  subsets: ["thai"],
 })
 
 const fontMono = Geist_Mono({
@@ -21,17 +28,21 @@ export const metadata: Metadata = {
     "AI-native Company OS — CRM, project delivery, finance visibility, automation, and management dashboards.",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale()
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
-      className={`${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontSans.variable} ${fontThai.variable} ${fontMono.variable} h-full antialiased`}
     >
       <body className="bg-background text-foreground min-h-full">
-        <TooltipProvider>{children}</TooltipProvider>
+        <LocaleProvider locale={locale}>
+          <TooltipProvider>{children}</TooltipProvider>
+        </LocaleProvider>
         <Toaster richColors position="top-right" />
       </body>
     </html>

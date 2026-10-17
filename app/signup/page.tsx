@@ -19,9 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { LocaleToggle, useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export default function SignupPage() {
   const router = useRouter()
+  const t = useT()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -36,8 +39,8 @@ export default function SignupPage() {
 
     const check = validatePassword(password)
     if (!check.ok) {
-      toast.error("Choose a stronger password", {
-        description: check.issues.join(" "),
+      toast.error(t("Choose a stronger password", "กรุณาตั้งรหัสผ่านที่ปลอดภัยกว่านี้"), {
+        description: check.issues.map((i) => translateMessage(t, i)).join(" "),
       })
       return
     }
@@ -47,7 +50,9 @@ export default function SignupPage() {
     setLoading(false)
 
     if (!result.ok) {
-      toast.error("Sign up failed", { description: result.error })
+      toast.error(t("Sign up failed", "สมัครสมาชิกไม่สำเร็จ"), {
+        description: translateMessage(t, result.error),
+      })
       return
     }
     if (!result.requiresConfirmation) {
@@ -65,12 +70,15 @@ export default function SignupPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="text-primary size-5" />
-              <CardTitle className="text-xl">Check your email</CardTitle>
+              <CardTitle className="text-xl">{t("Check your email", "กรุณาตรวจสอบอีเมล")}</CardTitle>
             </div>
             <CardDescription>
-              We sent a confirmation link to{" "}
-              <span className="font-medium">{email}</span>. Click it to confirm
-              your account, then sign in.
+              {t("We sent a confirmation link to ", "เราส่งลิงก์ยืนยันไปที่ ")}
+              <span className="font-medium">{email}</span>
+              {t(
+                ". Click it to confirm your account, then sign in.",
+                " แล้ว กดลิงก์เพื่อยืนยันบัญชี จากนั้นเข้าสู่ระบบ"
+              )}
             </CardDescription>
           </CardHeader>
           <CardFooter>
@@ -79,7 +87,7 @@ export default function SignupPage() {
               className="w-full"
               render={<Link href="/login" />}
             >
-              Back to sign in
+              {t("Back to sign in", "กลับไปหน้าเข้าสู่ระบบ")}
             </Button>
           </CardFooter>
         </Card>
@@ -91,15 +99,18 @@ export default function SignupPage() {
     <div className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-xl">Create your account</CardTitle>
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-xl">{t("Create your account", "สร้างบัญชีของคุณ")}</CardTitle>
+            <LocaleToggle />
+          </div>
           <CardDescription>
-            Sign up for the BoomBigNose Company OS.
+            {t("Sign up for the BoomBigNose Company OS.", "สมัครใช้งาน BoomBigNose Company OS")}
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("Email", "อีเมล")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -111,7 +122,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("Password", "รหัสผ่าน")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -124,12 +135,15 @@ export default function SignupPage() {
               {showPolicy ? (
                 <ul className="text-destructive space-y-1 text-xs">
                   {policy.issues.map((issue) => (
-                    <li key={issue}>{issue}</li>
+                    <li key={issue}>{translateMessage(t, issue)}</li>
                   ))}
                 </ul>
               ) : (
                 <p className="text-muted-foreground text-xs">
-                  At least 10 characters with upper, lower, and a number.
+                  {t(
+                    "At least 10 characters with upper, lower, and a number.",
+                    "อย่างน้อย 10 ตัวอักษร มีตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก และตัวเลข"
+                  )}
                 </p>
               )}
             </div>
@@ -143,13 +157,13 @@ export default function SignupPage() {
               {loading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Create account"
+                t("Create account", "สร้างบัญชี")
               )}
             </Button>
             <p className="text-muted-foreground text-center text-xs">
-              Already have an account?{" "}
+              {t("Already have an account? ", "มีบัญชีอยู่แล้ว? ")}
               <Link href="/login" className="underline underline-offset-4">
-                Sign in
+                {t("Sign in", "เข้าสู่ระบบ")}
               </Link>
             </p>
           </CardFooter>

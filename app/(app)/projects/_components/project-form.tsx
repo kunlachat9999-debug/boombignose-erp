@@ -24,23 +24,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { serviceMoneyInput } from "@/lib/workflows/service"
-import type { Enums } from "@/lib/types/database"
+import { Constants, type Enums } from "@/lib/types/database"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
 
 type ProjectStatus = Enums<"project_status">
-
-const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
-  { value: "not_started", label: "Not started" },
-  { value: "in_progress", label: "In progress" },
-  { value: "review", label: "Review" },
-  { value: "delivered", label: "Delivered" },
-  { value: "support", label: "Support" },
-  { value: "paused", label: "Paused" },
-  { value: "cancelled", label: "Cancelled" },
-]
-
-const STATUS_LABEL = Object.fromEntries(
-  STATUS_OPTIONS.map((s) => [s.value, s.label])
-) as Record<ProjectStatus, string>
 
 const NONE = "none"
 
@@ -70,13 +59,14 @@ export function ProjectForm({
   action,
   clients,
   defaultValues,
-  submitLabel = "Create project",
+  submitLabel,
 }: {
   action: (values: ProjectFormValues) => Promise<{ error?: string }>
   clients: ClientOption[]
   defaultValues?: Partial<FormInput>
   submitLabel?: string
 }) {
+  const t = useT()
   const form = useForm<FormInput, unknown, ProjectFormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -96,7 +86,7 @@ export function ProjectForm({
         onSubmit={form.handleSubmit(async (values) => {
           const res = await action(values)
           // On success the action redirects (throws), so we only reach here on error.
-          if (res?.error) toast.error(res.error)
+          if (res?.error) toast.error(translateMessage(t, res.error))
         })}
         className="space-y-5"
       >
@@ -105,9 +95,9 @@ export function ProjectForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project name</FormLabel>
+              <FormLabel>{t("Project name", "ชื่อโปรเจกต์")}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Website automation" {...field} />
+                <Input placeholder={t("e.g. Website automation", "เช่น ระบบอัตโนมัติเว็บไซต์")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -120,24 +110,23 @@ export function ProjectForm({
             name="clientId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Client</FormLabel>
+                <FormLabel>{t("Client", "ลูกค้า")}</FormLabel>
                 <Select
                   value={field.value}
                   onValueChange={(v) => field.onChange(v ?? NONE)}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="No client">
+                      <SelectValue placeholder={t("No client", "ไม่ระบุลูกค้า")}>
                         {(v: string | null) =>
-                          !v || v === NONE
-                            ? "No client"
-                            : (clients.find((c) => c.id === v)?.name ?? "No client")
+                          (v && v !== NONE && clients.find((c) => c.id === v)?.name) ||
+                          t("No client", "ไม่ระบุลูกค้า")
                         }
                       </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value={NONE}>No client</SelectItem>
+                    <SelectItem value={NONE}>{t("No client", "ไม่ระบุลูกค้า")}</SelectItem>
                     {clients.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
@@ -155,7 +144,7 @@ export function ProjectForm({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>{t("Status", "สถานะ")}</FormLabel>
                 <Select
                   value={field.value}
                   onValueChange={(v) => field.onChange(v)}
@@ -163,14 +152,14 @@ export function ProjectForm({
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue>
-                        {(v: ProjectStatus) => STATUS_LABEL[v]}
+                        {(v: ProjectStatus) => enumLabel(t, "project_status", v)}
                       </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {STATUS_OPTIONS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
+                    {Constants.public.Enums.project_status.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {enumLabel(t, "project_status", s)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -185,7 +174,7 @@ export function ProjectForm({
             name="deadline"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Deadline</FormLabel>
+                <FormLabel>{t("Deadline", "กำหนดส่ง")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -199,7 +188,7 @@ export function ProjectForm({
             name="budgetBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Budget (THB)</FormLabel>
+                <FormLabel>{t("Budget (THB)", "งบประมาณ (บาท)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -213,7 +202,9 @@ export function ProjectForm({
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <FormDescription>Total project budget in baht.</FormDescription>
+                <FormDescription>
+                  {t("Total project budget in baht.", "งบประมาณรวมของโปรเจกต์ (บาท)")}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -225,9 +216,9 @@ export function ProjectForm({
           name="owner"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Owner</FormLabel>
+              <FormLabel>{t("Owner", "ผู้รับผิดชอบ")}</FormLabel>
               <FormControl>
-                <Input placeholder="Who owns delivery?" {...field} />
+                <Input placeholder={t("Who owns delivery?", "ใครรับผิดชอบงานส่งมอบ?")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -236,7 +227,7 @@ export function ProjectForm({
 
         <div className="flex gap-2">
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            {submitLabel}
+            {submitLabel ?? t("Create project", "สร้างโปรเจกต์")}
           </Button>
         </div>
       </form>

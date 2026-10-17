@@ -24,6 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { addTask } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
 
 const Schema = z.object({
   title: z.string().min(1, "Task title is required"),
@@ -32,19 +35,10 @@ const Schema = z.object({
 })
 type Values = z.infer<typeof Schema>
 
-const STATUS_OPTIONS = [
-  { value: "todo", label: "To do" },
-  { value: "in_progress", label: "In progress" },
-  { value: "done", label: "Done" },
-] as const
-
-const STATUS_LABEL: Record<Values["status"], string> = {
-  todo: "To do",
-  in_progress: "In progress",
-  done: "Done",
-}
+const STATUSES = ["todo", "in_progress", "done"] as const
 
 export function AddTaskForm({ projectId }: { projectId: string }) {
+  const t = useT()
   const form = useForm<Values>({
     resolver: zodResolver(Schema),
     defaultValues: { title: "", status: "todo", dueDate: "" },
@@ -55,8 +49,8 @@ export function AddTaskForm({ projectId }: { projectId: string }) {
       <form
         onSubmit={form.handleSubmit(async (v) => {
           const res = await addTask({ projectId, ...v })
-          if (res?.error) return toast.error(res.error)
-          toast.success("Task added")
+          if (res?.error) return toast.error(translateMessage(t, res.error))
+          toast.success(t("Task added", "เพิ่มงานย่อยแล้ว"))
           form.reset({ title: "", status: "todo", dueDate: "" })
         })}
         className="flex flex-col gap-3 sm:flex-row sm:items-end"
@@ -66,9 +60,9 @@ export function AddTaskForm({ projectId }: { projectId: string }) {
           name="title"
           render={({ field }) => (
             <FormItem className="flex-1">
-              <FormLabel className="sr-only">Task title</FormLabel>
+              <FormLabel className="sr-only">{t("Task title", "ชื่องาน")}</FormLabel>
               <FormControl>
-                <Input placeholder="Add a task…" {...field} />
+                <Input placeholder={t("Add a task…", "เพิ่มงานย่อย…")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -79,19 +73,19 @@ export function AddTaskForm({ projectId }: { projectId: string }) {
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="sr-only">Status</FormLabel>
+              <FormLabel className="sr-only">{t("Status", "สถานะ")}</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger className="w-full sm:w-36">
                     <SelectValue>
-                      {(v: Values["status"]) => STATUS_LABEL[v]}
+                      {(v: Values["status"]) => enumLabel(t, "task_status", v)}
                     </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {STATUS_OPTIONS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {enumLabel(t, "task_status", s)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -104,7 +98,7 @@ export function AddTaskForm({ projectId }: { projectId: string }) {
           name="dueDate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="sr-only">Due date</FormLabel>
+              <FormLabel className="sr-only">{t("Due date", "วันครบกำหนด")}</FormLabel>
               <FormControl>
                 <Input type="date" className="w-full sm:w-40" {...field} />
               </FormControl>
@@ -112,7 +106,7 @@ export function AddTaskForm({ projectId }: { projectId: string }) {
           )}
         />
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          <Plus data-icon="inline-start" /> Add task
+          <Plus data-icon="inline-start" /> {t("Add task", "เพิ่มงาน")}
         </Button>
       </form>
     </Form>

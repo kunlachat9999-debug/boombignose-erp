@@ -19,11 +19,13 @@ import {
 } from "@/components/ui/table"
 
 import { QuoteStatusBadge } from "./_components/quote-status-badge"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
 export default async function QuotesPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const { data } = await supabase
@@ -38,27 +40,30 @@ export default async function QuotesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quotes"
-        description="Draft proposals, track acceptance, and convert to invoices."
+        title={t("Quotes", "ใบเสนอราคา")}
+        description={t(
+          "Draft proposals, track acceptance, and convert to invoices.",
+          "ร่างใบเสนอราคา ติดตามการอนุมัติ และแปลงเป็นใบแจ้งหนี้"
+        )}
       >
         <Button render={<Link href="/quotes/new" />}>
-          <FilePlus2 /> New quote
+          <FilePlus2 /> {t("New quote", "สร้างใบเสนอราคา")}
         </Button>
       </PageHeader>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Quotes</CardTitle>
+          <CardTitle className="text-base">{t("Quotes", "ใบเสนอราคา")}</CardTitle>
         </CardHeader>
         <CardContent>
           {quotes.length === 0 ? (
             <EmptyState
               icon={FileText}
-              title="No quotes yet"
-              description="Create your first quote to send a proposal to a client."
+              title={t("No quotes yet", "ยังไม่มีใบเสนอราคา")}
+              description={t("Create your first quote to send a proposal to a client.", "สร้างใบเสนอราคาแรกเพื่อส่งข้อเสนอให้ลูกค้า")}
               action={
                 <Button render={<Link href="/quotes/new" />}>
-                  <FilePlus2 /> New quote
+                  <FilePlus2 /> {t("New quote", "สร้างใบเสนอราคา")}
                 </Button>
               }
               className="border-0"
@@ -67,11 +72,11 @@ export default async function QuotesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Number</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Valid until</TableHead>
+                  <TableHead>{t("Number", "เลขที่")}</TableHead>
+                  <TableHead>{t("Client", "ลูกค้า")}</TableHead>
+                  <TableHead>{t("Status", "สถานะ")}</TableHead>
+                  <TableHead className="text-right">{t("Total", "ยอดรวม")}</TableHead>
+                  <TableHead>{t("Valid until", "ใช้ได้ถึง")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

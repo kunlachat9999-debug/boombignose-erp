@@ -13,16 +13,10 @@ import {
 import { toast } from "sonner"
 import type { Enums } from "@/lib/types/database"
 import { updateDealStage } from "../actions"
-
-const STAGES: { value: Enums<"deal_stage">; label: string }[] = [
-  { value: "lead", label: "Lead" },
-  { value: "contacted", label: "Contacted" },
-  { value: "discovery", label: "Discovery" },
-  { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-]
+import { useT } from "@/components/locale-provider"
+import { enumLabel } from "@/lib/enum-labels"
+import { translateMessage } from "@/lib/i18n-messages"
+import { Constants } from "@/lib/types/database"
 
 export function ChangeStageSelect({
   dealId,
@@ -32,12 +26,17 @@ export function ChangeStageSelect({
   stage: Enums<"deal_stage">
 }) {
   const router = useRouter()
+  const t = useT()
+  const stages = Constants.public.Enums.deal_stage.map((s) => ({
+    value: s,
+    label: enumLabel(t, "deal_stage", s),
+  }))
   const [value, setValue] = useState<Enums<"deal_stage">>(stage)
   const [isPending, startTransition] = useTransition()
 
   return (
     <Select
-      items={STAGES}
+      items={stages}
       value={value}
       onValueChange={(next) => {
         const nextStage = next as Enums<"deal_stage">
@@ -47,10 +46,10 @@ export function ChangeStageSelect({
           const res = await updateDealStage(dealId, nextStage)
           if (res?.error) {
             setValue(prev)
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
-          toast.success("Stage updated")
+          toast.success(t("Stage updated", "อัปเดตขั้นตอนแล้ว"))
           router.refresh()
         })
       }}
@@ -60,7 +59,7 @@ export function ChangeStageSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {STAGES.map((s) => (
+        {stages.map((s) => (
           <SelectItem key={s.value} value={s.value}>
             {s.label}
           </SelectItem>

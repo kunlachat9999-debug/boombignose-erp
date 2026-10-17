@@ -15,11 +15,13 @@ import {
   type InvoiceFormValues,
 } from "../../_components/invoice-form"
 import type { Option } from "../../_components/form-fields"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
 export default async function NewInvoicePage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const [clientsRes, projectsRes] = await Promise.all([
@@ -52,11 +54,11 @@ export default async function NewInvoicePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="New invoice"
-        description="Bill a client for work delivered or scheduled."
+        title={t("New invoice", "สร้างใบแจ้งหนี้")}
+        description={t("Bill a client for work delivered or scheduled.", "เรียกเก็บเงินลูกค้าสำหรับงานที่ส่งมอบหรือกำหนดไว้")}
       >
         <Button variant="outline" render={<Link href="/finance" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -66,7 +68,7 @@ export default async function NewInvoicePage() {
             clients={clients}
             projects={projects}
             defaultValues={defaultValues}
-            submitLabel="Create invoice"
+            submitLabel={t("Create invoice", "สร้างใบแจ้งหนี้")}
             action={createInvoice}
           />
         </CardContent>

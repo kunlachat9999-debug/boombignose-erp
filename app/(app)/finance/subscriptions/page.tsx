@@ -4,7 +4,6 @@ import { ArrowLeft, Repeat, Plus } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { requireOrgContext } from "@/lib/auth"
 import { formatTHB } from "@/lib/money"
-import type { Enums } from "@/lib/types/database"
 
 import { PageHeader } from "@/components/page-header"
 import { EmptyState } from "@/components/empty-state"
@@ -20,18 +19,14 @@ import {
 } from "@/components/ui/table"
 
 import { SubscriptionStatusBadge } from "../_components/subscription-status-badge"
+import { enumLabel } from "@/lib/enum-labels"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
-const INTERVAL_LABEL: Record<Enums<"recurring_interval">, string> = {
-  weekly: "Weekly",
-  monthly: "Monthly",
-  quarterly: "Quarterly",
-  yearly: "Yearly",
-}
-
 export default async function SubscriptionsPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const { data: subs } = await supabase
@@ -47,33 +42,39 @@ export default async function SubscriptionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Subscriptions"
-        description="Recurring invoices that bill clients on a schedule."
+        title={t("Subscriptions", "รายการสมัครสมาชิก")}
+        description={t("Recurring invoices that bill clients on a schedule.", "ใบแจ้งหนี้ประจำที่เรียกเก็บเงินลูกค้าตามรอบ")}
       >
         <Button variant="outline" render={<Link href="/finance" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
         <Button render={<Link href="/finance/subscriptions/new" />}>
-          <Plus /> New subscription
+          <Plus /> {t("New subscription", "เพิ่มรายการสมัครสมาชิก")}
         </Button>
       </PageHeader>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All subscriptions</CardTitle>
+          <CardTitle className="text-base">{t("All subscriptions", "รายการสมัครสมาชิกทั้งหมด")}</CardTitle>
           <p className="text-muted-foreground text-sm">
-            Active subscriptions feed the MRR metric on the Finance dashboard.
+            {t(
+              "Active subscriptions feed the MRR metric on the Finance dashboard.",
+              "รายการที่ใช้งานอยู่จะนำไปคำนวณรายได้ประจำต่อเดือน (MRR) ในหน้าการเงิน"
+            )}
           </p>
         </CardHeader>
         <CardContent>
           {subscriptions.length === 0 ? (
             <EmptyState
               icon={Repeat}
-              title="No subscriptions yet"
-              description="Create a subscription to bill a client automatically on a recurring schedule."
+              title={t("No subscriptions yet", "ยังไม่มีรายการสมัครสมาชิก")}
+              description={t(
+                "Create a subscription to bill a client automatically on a recurring schedule.",
+                "สร้างรายการเพื่อเรียกเก็บเงินลูกค้าอัตโนมัติตามรอบ"
+              )}
               action={
                 <Button render={<Link href="/finance/subscriptions/new" />}>
-                  <Plus /> New subscription
+                  <Plus /> {t("New subscription", "เพิ่มรายการสมัครสมาชิก")}
                 </Button>
               }
               className="border-0"
@@ -82,12 +83,12 @@ export default async function SubscriptionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Interval</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Next run</TableHead>
+                  <TableHead>{t("Name", "ชื่อ")}</TableHead>
+                  <TableHead>{t("Client", "ลูกค้า")}</TableHead>
+                  <TableHead>{t("Interval", "รอบ")}</TableHead>
+                  <TableHead>{t("Status", "สถานะ")}</TableHead>
+                  <TableHead className="text-right">{t("Amount", "จำนวนเงิน")}</TableHead>
+                  <TableHead>{t("Next run", "รอบถัดไป")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,7 +103,7 @@ export default async function SubscriptionsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{s.clients?.name ?? "—"}</TableCell>
-                    <TableCell>{INTERVAL_LABEL[s.interval]}</TableCell>
+                    <TableCell>{enumLabel(t, "recurring_interval", s.interval)}</TableCell>
                     <TableCell>
                       <SubscriptionStatusBadge status={s.status} />
                     </TableCell>

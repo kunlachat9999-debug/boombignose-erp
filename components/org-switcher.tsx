@@ -19,6 +19,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export type OrgOption = { orgId: string; orgName: string; role: string }
 
@@ -35,15 +37,16 @@ export function OrgSwitcher({
   currentOrgId: string
 }) {
   const [pending, startTransition] = useTransition()
+  const t = useT()
   const current =
     orgs.find((o) => o.orgId === currentOrgId) ?? orgs[0] ?? null
-  const currentName = current?.orgName ?? "Workspace"
+  const currentName = current?.orgName ?? t("Workspace", "พื้นที่ทำงาน")
 
   function switchTo(orgId: string) {
     if (orgId === currentOrgId) return
     startTransition(async () => {
       const res = await setActiveOrg({ orgId })
-      if (res?.error) toast.error(res.error)
+      if (res?.error) toast.error(translateMessage(t, res.error))
     })
   }
 
@@ -84,7 +87,7 @@ export function OrgSwitcher({
                 {currentName}
               </span>
               <span className="text-muted-foreground text-xs">
-                Switch workspace
+                {t("Switch workspace", "สลับพื้นที่ทำงาน")}
               </span>
             </div>
             <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
@@ -92,7 +95,7 @@ export function OrgSwitcher({
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-muted-foreground text-xs">
-                Workspaces
+                {t("Workspaces", "พื้นที่ทำงาน")}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {orgs.map((o) => (

@@ -18,6 +18,8 @@ import {
 
 import { deleteSavedView } from "./actions"
 import { configToHref, type ViewConfig } from "./view-config"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export type SavedView = {
   id: string
@@ -40,6 +42,7 @@ export function SavedViewsMenu({
   activeConfig: ViewConfig
 }) {
   const [pending, startTransition] = useTransition()
+  const t = useT()
   const activeKey = configToHref(basePath, activeConfig)
 
   if (views.length === 0) return null
@@ -48,10 +51,10 @@ export function SavedViewsMenu({
     startTransition(async () => {
       const res = await deleteSavedView(id)
       if (res?.error) {
-        toast.error(res.error)
+        toast.error(translateMessage(t, res.error))
         return
       }
-      toast.success(`Removed “${name}”`)
+      toast.success(t(`Removed “${name}”`, `ลบ “${name}” แล้ว`))
     })
   }
 
@@ -61,13 +64,13 @@ export function SavedViewsMenu({
         render={
           <Button variant="outline" size="sm">
             <Bookmark />
-            Saved views
+            {t("Saved views", "มุมมองที่บันทึกไว้")}
             <ChevronDown className="text-muted-foreground" />
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Saved views</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("Saved views", "มุมมองที่บันทึกไว้")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {views.map((view) => {
           const href = configToHref(basePath, view.config)
@@ -94,7 +97,7 @@ export function SavedViewsMenu({
               <Button
                 variant="ghost"
                 size="icon-xs"
-                aria-label={`Delete view ${view.name}`}
+                aria-label={t(`Delete view ${view.name}`, `ลบมุมมอง ${view.name}`)}
                 disabled={pending}
                 onClick={() => handleDelete(view.id, view.name)}
               >

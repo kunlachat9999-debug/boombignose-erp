@@ -21,6 +21,9 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import type { Enums } from "@/lib/types/database"
 import { addActivity, toggleActivityDone } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { enumLabel } from "@/lib/enum-labels"
+import { translateMessage } from "@/lib/i18n-messages"
 
 type Activity = {
   id: string
@@ -30,21 +33,7 @@ type Activity = {
   done: boolean
 }
 
-const TYPES: { value: Enums<"activity_type">; label: string }[] = [
-  { value: "follow_up", label: "Follow-up" },
-  { value: "call", label: "Call" },
-  { value: "email", label: "Email" },
-  { value: "meeting", label: "Meeting" },
-  { value: "note", label: "Note" },
-]
-
-const TYPE_LABEL: Record<Enums<"activity_type">, string> = {
-  note: "Note",
-  call: "Call",
-  email: "Email",
-  meeting: "Meeting",
-  follow_up: "Follow-up",
-}
+const TYPES: Enums<"activity_type">[] = ["follow_up", "call", "email", "meeting", "note"]
 
 export function ActivitiesSection({
   dealId,
@@ -56,6 +45,11 @@ export function ActivitiesSection({
   today: string
 }) {
   const router = useRouter()
+  const t = useT()
+  const typeOptions = TYPES.map((value) => ({
+    value,
+    label: enumLabel(t, "activity_type", value),
+  }))
   const [type, setType] = useState<Enums<"activity_type">>("follow_up")
   const [body, setBody] = useState("")
   const [dueDate, setDueDate] = useState("")
@@ -65,13 +59,13 @@ export function ActivitiesSection({
     startTransition(async () => {
       const res = await addActivity({ dealId, type, body, dueDate })
       if (res?.error) {
-        toast.error(res.error)
+        toast.error(translateMessage(t, res.error))
         return
       }
       setBody("")
       setDueDate("")
       setType("follow_up")
-      toast.success("Activity added")
+      toast.success(t("Activity added", "เพิ่มกิจกรรมแล้ว"))
       router.refresh()
     })
   }
@@ -81,9 +75,9 @@ export function ActivitiesSection({
       <div className="space-y-3 rounded-lg border p-4">
         <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
           <div className="space-y-1.5">
-            <Label htmlFor="activity-type">Type</Label>
+            <Label htmlFor="activity-type">{t("Type", "ประเภท")}</Label>
             <Select
-              items={TYPES}
+              items={typeOptions}
               value={type}
               onValueChange={(v) => setType(v as Enums<"activity_type">)}
             >
@@ -91,16 +85,16 @@ export function ActivitiesSection({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
+                {typeOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="activity-due">Due date</Label>
+            <Label htmlFor="activity-due">{t("Due date", "วันครบกำหนด")}</Label>
             <Input
               id="activity-due"
               type="date"
@@ -110,25 +104,25 @@ export function ActivitiesSection({
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="activity-body">Notes</Label>
+          <Label htmlFor="activity-body">{t("Notes", "บันทึก")}</Label>
           <Textarea
             id="activity-body"
             rows={2}
-            placeholder="What needs to happen?"
+            placeholder={t("What needs to happen?", "ต้องทำอะไรบ้าง?")}
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
         </div>
         <Button type="button" onClick={submit} disabled={isPending}>
-          Add activity
+          {t("Add activity", "เพิ่มกิจกรรม")}
         </Button>
       </div>
 
       {activities.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
-          title="No activities yet"
-          description="Log a call, email, or follow-up to keep this deal moving."
+          title={t("No activities yet", "ยังไม่มีกิจกรรม")}
+          description={t("Log a call, email, or follow-up to keep this deal moving.", "บันทึกการโทร อีเมล หรือการติดตามผล เพื่อให้ดีลเดินหน้า")}
           className="border-0 p-6"
         />
       ) : (
@@ -142,7 +136,7 @@ export function ActivitiesSection({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-                      {TYPE_LABEL[a.type]}
+                      {enumLabel(t, "activity_type", a.type)}
                     </span>
                     {a.due_date ? (
                       <span
@@ -155,7 +149,11 @@ export function ActivitiesSection({
                               : "text-muted-foreground"
                         )}
                       >
-                        {overdue ? "Overdue · " : dueToday ? "Due today · " : "Due "}
+                        {overdue
+                          ? t("Overdue · ", "เลยกำหนด · ")
+                          : dueToday
+                            ? t("Due today · ", "ครบกำหนดวันนี้ · ")
+                            : t("Due ", "ครบกำหนด ")}
                         {a.due_date}
                       </span>
                     ) : null}
@@ -188,6 +186,7 @@ function ToggleDone({
   dealId: string
 }) {
   const router = useRouter()
+  const t = useT()
   const [isPending, startTransition] = useTransition()
 
   return (
@@ -195,12 +194,12 @@ function ToggleDone({
       checked={done}
       disabled={isPending}
       className="mt-0.5"
-      aria-label={done ? "Mark not done" : "Mark done"}
+      aria-label={done ? t("Mark not done", "ทำเครื่องหมายว่ายังไม่เสร็จ") : t("Mark done", "ทำเครื่องหมายว่าเสร็จ")}
       onCheckedChange={(checked) => {
         startTransition(async () => {
           const res = await toggleActivityDone(id, checked === true, dealId)
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
           router.refresh()

@@ -10,6 +10,8 @@ import type { Enums } from "@/lib/types/database"
 import { quoteConversionKey } from "@/lib/workflows/service"
 
 import { setQuoteStatus, convertQuoteToInvoice } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function QuoteStatusControls({
   quoteId,
@@ -23,6 +25,7 @@ export function QuoteStatusControls({
   canConvert: boolean
 }) {
   const router = useRouter()
+  const t = useT()
   const [pending, startTransition] = useTransition()
   const conversionRequest = useRef<{ scope: string; key: string } | null>(null)
 
@@ -30,7 +33,7 @@ export function QuoteStatusControls({
     startTransition(async () => {
       const res = await setQuoteStatus({ id: quoteId, status: next })
       if (res?.error) {
-        toast.error(res.error)
+        toast.error(translateMessage(t, res.error))
         return
       }
       toast.success(message)
@@ -54,10 +57,15 @@ export function QuoteStatusControls({
       try {
         const res = await convertQuoteToInvoice({ id: quoteId, key: conversionRequest.current.key })
         // On success the action redirects; only errors return here.
-        if (res?.error) toast.error(res.error)
+        if (res?.error) toast.error(translateMessage(t, res.error))
       } catch (error) {
         unstable_rethrow(error)
-        toast.error("The conversion result could not be confirmed. Retry to recover the same invoice.")
+        toast.error(
+          t(
+            "The conversion result could not be confirmed. Retry to recover the same invoice.",
+            "ยืนยันผลการแปลงไม่ได้ กรุณาลองใหม่เพื่อเรียกคืนใบแจ้งหนี้เดิม"
+          )
+        )
       }
     })
   }
@@ -68,9 +76,9 @@ export function QuoteStatusControls({
         <Button
           size="sm"
           disabled={pending}
-          onClick={() => changeStatus("sent", "Quote marked as sent")}
+          onClick={() => changeStatus("sent", t("Quote marked as sent", "ทำเครื่องหมายว่าส่งแล้ว"))}
         >
-          <Send /> Mark sent
+          <Send /> {t("Mark sent", "ทำเครื่องหมายว่าส่งแล้ว")}
         </Button>
       ) : null}
 
@@ -79,24 +87,24 @@ export function QuoteStatusControls({
           <Button
             size="sm"
             disabled={pending}
-            onClick={() => changeStatus("accepted", "Quote accepted")}
+            onClick={() => changeStatus("accepted", t("Quote accepted", "อนุมัติใบเสนอราคาแล้ว"))}
           >
-            <Check /> Accept
+            <Check /> {t("Accept", "อนุมัติ")}
           </Button>
           <Button
             size="sm"
             variant="outline"
             disabled={pending}
-            onClick={() => changeStatus("declined", "Quote declined")}
+            onClick={() => changeStatus("declined", t("Quote declined", "ปฏิเสธใบเสนอราคาแล้ว"))}
           >
-            <X /> Decline
+            <X /> {t("Decline", "ปฏิเสธ")}
           </Button>
         </>
       ) : null}
 
       {status === "accepted" && canConvert ? (
         <Button size="sm" disabled={pending} onClick={convert}>
-          <FileOutput /> Create project and draft invoice
+          <FileOutput /> {t("Create project and draft invoice", "สร้างโปรเจกต์และร่างใบแจ้งหนี้")}
         </Button>
       ) : null}
     </div>

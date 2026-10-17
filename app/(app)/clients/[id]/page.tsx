@@ -30,6 +30,8 @@ import { AddContactDialog } from "../_components/add-contact-dialog"
 import { DeleteContactButton } from "../_components/delete-contact-button"
 import { DeleteClientButton } from "../_components/delete-client-button"
 import { PortalShareCard } from "../_components/portal-share-card"
+import { enumLabel } from "@/lib/enum-labels"
+import { getT } from "@/lib/i18n-server"
 
 export default async function ClientDetailPage({
   params,
@@ -38,6 +40,7 @@ export default async function ClientDetailPage({
 }) {
   const { id } = await params
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const { data: client } = await supabase
@@ -80,10 +83,10 @@ export default async function ClientDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={client.name} description="Client details">
+      <PageHeader title={client.name} description={t("Client details", "รายละเอียดลูกค้า")}>
         <Button variant="ghost" size="sm" render={<Link href="/clients" />}>
           <ArrowLeft />
-          Back
+          {t("Back", "กลับ")}
         </Button>
         <Button
           variant="outline"
@@ -91,7 +94,7 @@ export default async function ClientDetailPage({
           render={<Link href={`/clients/${client.id}/edit`} />}
         >
           <Pencil />
-          Edit
+          {t("Edit", "แก้ไข")}
         </Button>
         <DeleteClientButton id={client.id} name={client.name} />
       </PageHeader>
@@ -99,12 +102,12 @@ export default async function ClientDetailPage({
       {/* Overview */}
       <Card>
         <CardContent className="grid gap-4 sm:grid-cols-3">
-          <Field label="Industry" value={client.industry} />
-          <Field label="Source" value={client.source} />
-          <Field label="Added" value={formatDate(client.created_at)} />
+          <Field label={t("Industry", "อุตสาหกรรม")} value={client.industry} />
+          <Field label={t("Source", "แหล่งที่มา")} value={client.source} />
+          <Field label={t("Added", "วันที่เพิ่ม")} value={formatDate(client.created_at)} />
           {client.notes ? (
             <div className="space-y-1 sm:col-span-3">
-              <p className="text-muted-foreground text-xs font-medium">Notes</p>
+              <p className="text-muted-foreground text-xs font-medium">{t("Notes", "บันทึก")}</p>
               <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
             </div>
           ) : null}
@@ -117,7 +120,7 @@ export default async function ClientDetailPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Share2 className="size-4" />
-              Client portal
+              {t("Client portal", "พอร์ทัลลูกค้า")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -136,7 +139,7 @@ export default async function ClientDetailPage({
         <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
           <CardTitle className="flex items-center gap-2">
             <Users className="size-4" />
-            Contacts
+            {t("Contacts", "ผู้ติดต่อ")}
           </CardTitle>
           <AddContactDialog clientId={client.id} />
         </CardHeader>
@@ -144,8 +147,8 @@ export default async function ClientDetailPage({
           {contacts.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="No contacts yet"
-              description="Add the people you talk to at this client."
+              title={t("No contacts yet", "ยังไม่มีผู้ติดต่อ")}
+              description={t("Add the people you talk to at this client.", "เพิ่มคนที่คุณติดต่อด้วยที่ลูกค้ารายนี้")}
               className="border-0 p-6"
             />
           ) : (
@@ -184,7 +187,7 @@ export default async function ClientDetailPage({
                         </a>
                       ) : null}
                       {!person.email && !person.phone ? (
-                        <span>No contact info</span>
+                        <span>{t("No contact info", "ไม่มีข้อมูลติดต่อ")}</span>
                       ) : null}
                     </div>
                   </div>
@@ -204,15 +207,15 @@ export default async function ClientDetailPage({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Handshake className="size-4" />
-            Deals
+            {t("Deals", "ดีล")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {deals.length === 0 ? (
             <EmptyState
               icon={Handshake}
-              title="No deals yet"
-              description="Deals for this client show up here."
+              title={t("No deals yet", "ยังไม่มีดีล")}
+              description={t("Deals for this client show up here.", "ดีลของลูกค้ารายนี้จะแสดงที่นี่")}
               className="border-0 p-6"
             />
           ) : (
@@ -241,15 +244,15 @@ export default async function ClientDetailPage({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ActivityIcon className="size-4" />
-            Recent activity
+            {t("Recent activity", "กิจกรรมล่าสุด")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {activities.length === 0 ? (
             <EmptyState
               icon={ActivityIcon}
-              title="No activity yet"
-              description="Notes, calls, and follow-ups appear here."
+              title={t("No activity yet", "ยังไม่มีกิจกรรม")}
+              description={t("Notes, calls, and follow-ups appear here.", "บันทึก การโทร และการติดตามผลจะแสดงที่นี่")}
               className="border-0 p-6"
             />
           ) : (
@@ -260,7 +263,7 @@ export default async function ClientDetailPage({
                   className="flex items-start gap-3 py-3 text-sm"
                 >
                   <Badge variant="outline" className="mt-0.5 shrink-0 capitalize">
-                    {item.type.replace("_", " ")}
+                    {enumLabel(t, "activity_type", item.type)}
                   </Badge>
                   <span className="min-w-0 flex-1">
                     {item.body ?? "—"}

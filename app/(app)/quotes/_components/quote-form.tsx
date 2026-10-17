@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button"
 import { serviceMoneyInput } from "@/lib/workflows/service"
 
 import { SelectField, type Option } from "./form-fields"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 const Schema = z.object({
   client_id: z.string().min(1, "Choose a client"),
@@ -61,6 +63,7 @@ export function QuoteForm({
   action: (values: Values) => Promise<{ error?: string } | void>
 }) {
   const router = useRouter()
+  const t = useT()
   const form = useForm<z.input<typeof Schema>, unknown, Values>({
     resolver: zodResolver(Schema),
     defaultValues,
@@ -72,11 +75,11 @@ export function QuoteForm({
         onSubmit={form.handleSubmit(async (values) => {
           const res = await action(values)
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
           // createQuote redirects on success (no return); update returns {}.
-          toast.success("Quote saved")
+          toast.success(t("Quote saved", "บันทึกใบเสนอราคาแล้ว"))
           router.refresh()
         })}
         className="space-y-5"
@@ -84,18 +87,18 @@ export function QuoteForm({
         <div className="grid gap-5 sm:grid-cols-2">
           <SelectField
             name="client_id"
-            label="Client"
-            placeholder="Select a client"
+            label={t("Client", "ลูกค้า")}
+            placeholder={t("Select a client", "เลือกลูกค้า")}
             options={clients}
           />
           <SelectField
             name="project_id"
-            label="Project"
-            placeholder="No project"
+            label={t("Project", "โปรเจกต์")}
+            placeholder={t("No project", "ไม่ระบุโปรเจกต์")}
             options={projects}
             optional
-            noneLabel="No project"
-            description="Optional — link to a project."
+            noneLabel={t("No project", "ไม่ระบุโปรเจกต์")}
+            description={t("Optional — link to a project.", "ไม่บังคับ — ผูกกับโปรเจกต์")}
           />
         </div>
 
@@ -105,12 +108,12 @@ export function QuoteForm({
             name="number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quote number</FormLabel>
+                <FormLabel>{t("Quote number", "เลขที่ใบเสนอราคา")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Auto (QUO-2026-00X)" {...field} />
+                  <Input placeholder={t("Auto (QUO-2026-00X)", "อัตโนมัติ (QUO-2026-00X)")} {...field} />
                 </FormControl>
                 <FormDescription>
-                  Leave blank to auto-number.
+                  {t("Leave blank to auto-number.", "เว้นว่างไว้เพื่อให้ระบบรันเลขให้")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -121,7 +124,7 @@ export function QuoteForm({
             name="discountBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Discount (฿)</FormLabel>
+                <FormLabel>{t("Discount (฿)", "ส่วนลด (฿)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -135,7 +138,9 @@ export function QuoteForm({
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <FormDescription>Absolute amount off the subtotal.</FormDescription>
+                <FormDescription>
+                  {t("Absolute amount off the subtotal.", "จำนวนเงินที่หักจากยอดก่อนส่วนลด")}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -148,7 +153,7 @@ export function QuoteForm({
             name="issue_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Issue date</FormLabel>
+                <FormLabel>{t("Issue date", "วันที่ออก")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -161,7 +166,7 @@ export function QuoteForm({
             name="valid_until"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Valid until</FormLabel>
+                <FormLabel>{t("Valid until", "ใช้ได้ถึง")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -176,10 +181,10 @@ export function QuoteForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>{t("Notes", "หมายเหตุ")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Scope, assumptions, terms…"
+                  placeholder={t("Scope, assumptions, terms…", "ขอบเขตงาน สมมติฐาน เงื่อนไข…")}
                   {...field}
                 />
               </FormControl>

@@ -27,6 +27,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { addContact } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 const ContactSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -39,6 +41,7 @@ type ContactValues = z.infer<typeof ContactSchema>
 
 export function AddContactDialog({ clientId }: { clientId: string }) {
   const router = useRouter()
+  const t = useT()
   const [open, setOpen] = useState(false)
   const form = useForm<ContactValues>({
     resolver: zodResolver(ContactSchema),
@@ -49,13 +52,13 @@ export function AddContactDialog({ clientId }: { clientId: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" size="sm" />}>
         <UserPlus />
-        Add contact
+        {t("Add contact", "เพิ่มผู้ติดต่อ")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add contact</DialogTitle>
+          <DialogTitle>{t("Add contact", "เพิ่มผู้ติดต่อ")}</DialogTitle>
           <DialogDescription>
-            A person at this client you talk to.
+            {t("A person at this client you talk to.", "คนที่คุณติดต่อด้วยที่ลูกค้ารายนี้")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -63,10 +66,10 @@ export function AddContactDialog({ clientId }: { clientId: string }) {
             onSubmit={form.handleSubmit(async (values) => {
               const res = await addContact({ client_id: clientId, ...values })
               if (res?.error) {
-                toast.error(res.error)
+                toast.error(translateMessage(t, res.error))
                 return
               }
-              toast.success("Contact added")
+              toast.success(t("Contact added", "เพิ่มผู้ติดต่อแล้ว"))
               form.reset()
               setOpen(false)
               router.refresh()
@@ -78,9 +81,9 @@ export function AddContactDialog({ clientId }: { clientId: string }) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("Name", "ชื่อ")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Jane Doe" {...field} />
+                    <Input placeholder={t("Jane Doe", "สมหญิง ใจดี")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -92,7 +95,7 @@ export function AddContactDialog({ clientId }: { clientId: string }) {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("Email", "อีเมล")}</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="jane@acme.co" {...field} />
                     </FormControl>
@@ -105,7 +108,7 @@ export function AddContactDialog({ clientId }: { clientId: string }) {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>{t("Phone", "โทรศัพท์")}</FormLabel>
                     <FormControl>
                       <Input placeholder="08x-xxx-xxxx" {...field} />
                     </FormControl>
@@ -119,9 +122,9 @@ export function AddContactDialog({ clientId }: { clientId: string }) {
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>{t("Role", "ตำแหน่ง")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Founder, Ops lead" {...field} />
+                    <Input placeholder={t("e.g. Founder, Ops lead", "เช่น ผู้ก่อตั้ง, หัวหน้าฝ่ายปฏิบัติการ")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -134,10 +137,10 @@ export function AddContactDialog({ clientId }: { clientId: string }) {
                 onClick={() => setOpen(false)}
                 disabled={form.formState.isSubmitting}
               >
-                Cancel
+                {t("Cancel", "ยกเลิก")}
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                Add contact
+                {t("Add contact", "เพิ่มผู้ติดต่อ")}
               </Button>
             </div>
           </form>

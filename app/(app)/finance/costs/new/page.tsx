@@ -12,11 +12,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { createCost } from "../../actions"
 import { CostForm } from "../../_components/cost-form"
 import type { Option } from "../../_components/form-fields"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
 export default async function NewCostPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const projectsRes = await supabase
@@ -33,11 +35,14 @@ export default async function NewCostPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="New cost"
-        description="Log an operating cost — software, contractors, infra, and more."
+        title={t("New cost", "เพิ่มค่าใช้จ่าย")}
+        description={t(
+          "Log an operating cost — software, contractors, infra, and more.",
+          "บันทึกค่าใช้จ่ายดำเนินงาน — ซอฟต์แวร์ ผู้รับจ้าง โครงสร้างพื้นฐาน และอื่น ๆ"
+        )}
       >
         <Button variant="outline" render={<Link href="/finance" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 

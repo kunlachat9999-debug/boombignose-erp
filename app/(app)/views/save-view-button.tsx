@@ -20,6 +20,8 @@ import {
 
 import { createSavedView } from "./actions"
 import { isEmptyConfig, type ViewConfig } from "./view-config"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 /**
  * "Save this view" control. Captures the currently-active filters (passed in as
@@ -33,6 +35,7 @@ export function SaveViewButton({
   module: "deals" | "finance" | "clients"
   config: ViewConfig
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [pending, startTransition] = useTransition()
@@ -41,16 +44,16 @@ export function SaveViewButton({
   function handleSave() {
     const trimmed = name.trim()
     if (!trimmed) {
-      toast.error("Give your view a name")
+      toast.error(t("Give your view a name", "กรุณาตั้งชื่อมุมมอง"))
       return
     }
     startTransition(async () => {
       const res = await createSavedView({ module, name: trimmed, config })
       if (res?.error) {
-        toast.error(res.error)
+        toast.error(translateMessage(t, res.error))
         return
       }
-      toast.success(`Saved view “${trimmed}”`)
+      toast.success(t(`Saved view “${trimmed}”`, `บันทึกมุมมอง “${trimmed}” แล้ว`))
       setName("")
       setOpen(false)
     })
@@ -62,23 +65,23 @@ export function SaveViewButton({
         render={
           <Button variant="outline" size="sm" disabled={noFilters}>
             <BookmarkPlus />
-            Save view
+            {t("Save view", "บันทึกมุมมอง")}
           </Button>
         }
       />
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Save this view</DialogTitle>
+          <DialogTitle>{t("Save this view", "บันทึกมุมมองนี้")}</DialogTitle>
           <DialogDescription>
-            Save the current filters so you can jump back to them later.
+            {t("Save the current filters so you can jump back to them later.", "บันทึกตัวกรองปัจจุบันไว้เพื่อกลับมาใช้ภายหลัง")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="saved-view-name">View name</Label>
+          <Label htmlFor="saved-view-name">{t("View name", "ชื่อมุมมอง")}</Label>
           <Input
             id="saved-view-name"
             value={name}
-            placeholder="e.g. Hot deals"
+            placeholder={t("e.g. Hot deals", "เช่น ดีลที่น่าสนใจ")}
             autoFocus
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
@@ -93,12 +96,12 @@ export function SaveViewButton({
           <DialogClose
             render={
               <Button variant="ghost" size="sm">
-                Cancel
+                {t("Cancel", "ยกเลิก")}
               </Button>
             }
           />
           <Button size="sm" disabled={pending} onClick={handleSave}>
-            Save
+            {t("Save", "บันทึก")}
           </Button>
         </DialogFooter>
       </DialogContent>

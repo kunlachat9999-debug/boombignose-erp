@@ -38,6 +38,7 @@ import { TaskToggle, MilestoneToggle } from "../_components/toggle-check"
 import { AddTaskForm } from "../_components/add-task-form"
 import { AddMilestoneForm } from "../_components/add-milestone-form"
 import { LogTimeForm } from "@/app/(app)/timesheets/_components/log-time-form"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -69,6 +70,7 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>
 }) {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const { id } = await params
   const supabase = await createClient()
 
@@ -164,8 +166,8 @@ export default async function ProjectDetailPage({
   const loggedMinutes = totalMinutes(timeEntries)
   const loggedBillable = billableValueSatang(timeEntries)
 
-  const dl = deadlineMeta(p.deadline)
-  const doneTasks = tasks.filter((t) => t.done).length
+  const dl = deadlineMeta(t, p.deadline)
+  const doneTasks = tasks.filter((task) => task.done).length
   const doneMilestones = milestones.filter((m) => m.done).length
 
   const billedInvoices = invoices.filter((invoice) => ["sent", "partially_paid", "paid", "overdue"].includes(invoice.status))
@@ -174,12 +176,12 @@ export default async function ProjectDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={p.name} description={p.client?.name ?? "No client"}>
+      <PageHeader title={p.name} description={p.client?.name ?? t("No client", "ไม่ระบุลูกค้า")}>
         <Button variant="outline" render={<Link href="/projects" />}>
-          <ArrowLeft data-icon="inline-start" /> Back
+          <ArrowLeft data-icon="inline-start" /> {t("Back", "กลับ")}
         </Button>
         <Button variant="outline" render={<Link href={`/projects/${id}/edit`} />}>
-          <Pencil data-icon="inline-start" /> Edit
+          <Pencil data-icon="inline-start" /> {t("Edit", "แก้ไข")}
         </Button>
       </PageHeader>
 
@@ -191,16 +193,16 @@ export default async function ProjectDetailPage({
               <ProjectStatusBadge status={p.status} />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-sm">Change status</span>
+              <span className="text-muted-foreground text-sm">{t("Change status", "เปลี่ยนสถานะ")}</span>
               <StatusSelect projectId={p.id} status={p.status} />
             </div>
           </div>
           <Separator />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Field icon={Building2} label="Client">
+            <Field icon={Building2} label={t("Client", "ลูกค้า")}>
               {p.client?.name ?? "—"}
             </Field>
-            <Field icon={CalendarClock} label="Deadline">
+            <Field icon={CalendarClock} label={t("Deadline", "กำหนดส่ง")}>
               {dl ? (
                 <span
                   className={cn(
@@ -217,10 +219,10 @@ export default async function ProjectDetailPage({
                 "—"
               )}
             </Field>
-            <Field icon={Wallet} label="Budget">
+            <Field icon={Wallet} label={t("Budget", "งบประมาณ")}>
               {p.budget_satang != null ? formatTHBWhole(p.budget_satang) : "—"}
             </Field>
-            <Field icon={User} label="Owner">
+            <Field icon={User} label={t("Owner", "ผู้รับผิดชอบ")}>
               {p.owner ?? "—"}
             </Field>
           </div>
@@ -229,7 +231,7 @@ export default async function ProjectDetailPage({
 
       {sourceQuotes?.length || invoices.length ? (
         <Card>
-          <CardHeader><CardTitle className="text-base">Quotes and invoices</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{t("Quotes and invoices", "ใบเสนอราคาและใบแจ้งหนี้")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <ul className="space-y-2">
               {(sourceQuotes ?? []).map((quote) => (
@@ -237,7 +239,7 @@ export default async function ProjectDetailPage({
                   <Link href={`/quotes/${quote.id}`} className="font-medium hover:underline">{quote.number}</Link>
                   <QuoteStatusBadge status={quote.status} />
                   <span>{formatTHB(quote.total_satang)}</span>
-                  {quote.converted_invoice_id ? <Link href={`/finance/invoices/${quote.converted_invoice_id}`} className="hover:underline">View draft or issued invoice</Link> : null}
+                  {quote.converted_invoice_id ? <Link href={`/finance/invoices/${quote.converted_invoice_id}`} className="hover:underline">{t("View draft or issued invoice", "ดูใบแจ้งหนี้ฉบับร่างหรือที่ออกแล้ว")}</Link> : null}
                 </li>
               ))}
             </ul>
@@ -247,7 +249,7 @@ export default async function ProjectDetailPage({
                   <Link href={`/finance/invoices/${invoice.id}`} className="font-medium hover:underline">{invoice.number}</Link>
                   <InvoiceStatusBadge status={invoice.status} />
                   <span>{formatTHB(invoice.amount_satang)}</span>
-                  {invoice.source_quote_id ? <Link href={`/quotes/${invoice.source_quote_id}`} className="hover:underline">Source quote</Link> : null}
+                  {invoice.source_quote_id ? <Link href={`/quotes/${invoice.source_quote_id}`} className="hover:underline">{t("Source quote", "ใบเสนอราคาต้นทาง")}</Link> : null}
                 </li>
               ))}
             </ul>
@@ -258,18 +260,18 @@ export default async function ProjectDetailPage({
       {/* Profit (only when there are invoices or costs) */}
       {profit ? (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard label="Revenue" value={formatTHB(profit.revenueSatang)} tone="positive" />
-          <StatCard label="Cost" value={formatTHB(profit.costSatang)} tone="negative" />
+          <StatCard label={t("Revenue", "รายได้")} value={formatTHB(profit.revenueSatang)} tone="positive" />
+          <StatCard label={t("Cost", "ต้นทุน")} value={formatTHB(profit.costSatang)} tone="negative" />
           <StatCard
-            label="Profit"
+            label={t("Profit", "กำไร")}
             value={formatTHB(profit.profitSatang)}
             tone={profit.profitSatang >= 0 ? "positive" : "negative"}
           />
           <StatCard
-            label="Margin"
+            label={t("Margin", "อัตรากำไร")}
             value={`${profit.marginPct.toFixed(0)}%`}
             tone={profit.marginPct >= 0 ? "default" : "negative"}
-            hint="Billed revenue vs. recorded cost"
+            hint={t("Billed revenue vs. recorded cost", "รายได้ที่เรียกเก็บเทียบกับต้นทุนที่บันทึก")}
           />
         </div>
       ) : null}
@@ -278,9 +280,9 @@ export default async function ProjectDetailPage({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <ListChecks className="size-4" /> Tasks
+            <ListChecks className="size-4" /> {t("Tasks", "งานย่อย")}
             <span className="text-muted-foreground text-sm font-normal">
-              {doneTasks}/{tasks.length} done
+              {t(`${doneTasks}/${tasks.length} done`, `เสร็จ ${doneTasks}/${tasks.length}`)}
             </span>
           </CardTitle>
         </CardHeader>
@@ -289,39 +291,39 @@ export default async function ProjectDetailPage({
           {tasks.length === 0 ? (
             <EmptyState
               icon={ListChecks}
-              title="No tasks yet"
-              description="Break the project into tasks to track progress."
+              title={t("No tasks yet", "ยังไม่มีงานย่อย")}
+              description={t("Break the project into tasks to track progress.", "แบ่งโปรเจกต์เป็นงานย่อยเพื่อติดตามความคืบหน้า")}
               className="border-0 p-6"
             />
           ) : (
             <ul className="divide-y rounded-md border">
-              {tasks.map((t) => (
-                <li key={t.id} className="flex items-center gap-3 px-3 py-2.5">
+              {tasks.map((task) => (
+                <li key={task.id} className="flex items-center gap-3 px-3 py-2.5">
                   <TaskToggle
-                    id={t.id}
+                    id={task.id}
                     projectId={p.id}
-                    done={t.done}
-                    label={`Mark "${t.title}" done`}
+                    done={task.done}
+                    label={t(`Mark "${task.title}" done`, `ทำเครื่องหมายว่า "${task.title}" เสร็จแล้ว`)}
                   />
                   <span
                     className={cn(
                       "min-w-0 flex-1 truncate text-sm",
-                      t.done && "text-muted-foreground line-through"
+                      task.done && "text-muted-foreground line-through"
                     )}
                   >
-                    {t.title}
+                    {task.title}
                   </span>
-                  {t.assignee ? (
+                  {task.assignee ? (
                     <span className="text-muted-foreground hidden shrink-0 text-xs sm:inline">
-                      {t.assignee}
+                      {task.assignee}
                     </span>
                   ) : null}
-                  {t.due_date ? (
+                  {task.due_date ? (
                     <span className="text-muted-foreground hidden shrink-0 text-xs sm:inline">
-                      {formatDate(t.due_date)}
+                      {formatDate(task.due_date)}
                     </span>
                   ) : null}
-                  <TaskStatusBadge status={t.status} />
+                  <TaskStatusBadge status={task.status} />
                 </li>
               ))}
             </ul>
@@ -333,9 +335,9 @@ export default async function ProjectDetailPage({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Flag className="size-4" /> Milestones
+            <Flag className="size-4" /> {t("Milestones", "เป้าหมาย")}
             <span className="text-muted-foreground text-sm font-normal">
-              {doneMilestones}/{milestones.length} done
+              {t(`${doneMilestones}/${milestones.length} done`, `เสร็จ ${doneMilestones}/${milestones.length}`)}
             </span>
           </CardTitle>
         </CardHeader>
@@ -344,8 +346,8 @@ export default async function ProjectDetailPage({
           {milestones.length === 0 ? (
             <EmptyState
               icon={Flag}
-              title="No milestones yet"
-              description="Add checkpoints to mark key deliverables."
+              title={t("No milestones yet", "ยังไม่มีเป้าหมาย")}
+              description={t("Add checkpoints to mark key deliverables.", "เพิ่มจุดตรวจสอบสำหรับงานส่งมอบสำคัญ")}
               className="border-0 p-6"
             />
           ) : (
@@ -356,7 +358,7 @@ export default async function ProjectDetailPage({
                     id={m.id}
                     projectId={p.id}
                     done={m.done}
-                    label={`Mark "${m.title}" done`}
+                    label={t(`Mark "${m.title}" done`, `ทำเครื่องหมายว่า "${m.title}" เสร็จแล้ว`)}
                   />
                   <span
                     className={cn(
@@ -367,7 +369,7 @@ export default async function ProjectDetailPage({
                     {m.title}
                   </span>
                   {m.source_quote_id ? (
-                    <Link href={`/quotes/${m.source_quote_id}`} className="text-xs hover:underline">Source quote</Link>
+                    <Link href={`/quotes/${m.source_quote_id}`} className="text-xs hover:underline">{t("Source quote", "ใบเสนอราคาต้นทาง")}</Link>
                   ) : null}
                   {invoices.filter((invoice) => invoice.source_milestone_id === m.id).map((invoice) => (
                     <Link key={invoice.id} href={`/finance/invoices/${invoice.id}`} className="text-xs hover:underline">{invoice.number}</Link>
@@ -388,11 +390,11 @@ export default async function ProjectDetailPage({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Clock className="size-4" /> Time logged
+            <Clock className="size-4" /> {t("Time logged", "เวลาที่บันทึก")}
             <span className="text-muted-foreground text-sm font-normal">
               {minutesToHours(loggedMinutes).toFixed(1)}h
               {loggedBillable > 0
-                ? ` · ${formatTHB(loggedBillable)} billable`
+                ? t(` · ${formatTHB(loggedBillable)} billable`, ` · เรียกเก็บได้ ${formatTHB(loggedBillable)}`)
                 : ""}
             </span>
           </CardTitle>
@@ -400,11 +402,11 @@ export default async function ProjectDetailPage({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <StatCard
-              label="Hours logged"
+              label={t("Hours logged", "ชั่วโมงที่บันทึก")}
               value={`${minutesToHours(loggedMinutes).toFixed(1)}h`}
             />
             <StatCard
-              label="Billable value"
+              label={t("Billable value", "มูลค่าที่เรียกเก็บได้")}
               value={formatTHB(loggedBillable)}
               tone="positive"
             />

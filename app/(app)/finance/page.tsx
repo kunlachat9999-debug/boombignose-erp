@@ -25,7 +25,6 @@ import {
   deriveInvoiceStatus,
   outstandingSatang,
 } from "@/lib/metrics/invoice-status"
-import type { Enums } from "@/lib/types/database"
 
 import { Constants } from "@/lib/types/database"
 import { PageHeader } from "@/components/page-header"
@@ -48,6 +47,8 @@ import { DeleteCostButton } from "./_components/delete-cost-button"
 import { FinanceToolbar } from "./_components/finance-toolbar"
 import type { SavedView } from "@/app/(app)/views/saved-views-menu"
 import type { ViewConfig } from "@/app/(app)/views/view-config"
+import { enumLabel } from "@/lib/enum-labels"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -59,21 +60,13 @@ function toViewConfig(config: unknown): ViewConfig {
   return typeof c.status === "string" ? { status: c.status } : {}
 }
 
-const COST_CATEGORY_LABEL: Record<Enums<"cost_category">, string> = {
-  software: "Software",
-  contractor: "Contractor",
-  infra: "Infrastructure",
-  marketing: "Marketing",
-  salary: "Salary",
-  other: "Other",
-}
-
 export default async function FinancePage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string }>
 }) {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const month = currentMonthKey()
   const today = todayISO()
@@ -169,49 +162,52 @@ export default async function FinancePage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Finance"
-        description="การเงิน / Verified receipts, receivables, and recorded operating costs."
+        title={t("Finance", "การเงิน")}
+        description={t(
+          "Verified receipts, receivables, and recorded operating costs.",
+          "รายรับที่ตรวจสอบแล้ว ลูกหนี้ค้างชำระ และค่าใช้จ่ายดำเนินงาน"
+        )}
       >
-        <Button variant="outline" render={<Link href="/finance/business-profile" />}>Business profile</Button>
+        <Button variant="outline" render={<Link href="/finance/business-profile" />}>{t("Business profile", "ข้อมูลกิจการ")}</Button>
         <Button variant="outline" render={<Link href="/finance/subscriptions" />}>
-          <Repeat /> Subscriptions
+          <Repeat /> {t("Subscriptions", "รายการสมัครสมาชิก")}
         </Button>
-        <Button variant="outline" render={<Link href="/finance/payments/export" />}>Receipt evidence CSV</Button>
+        <Button variant="outline" render={<Link href="/finance/payments/export" />}>{t("Receipt evidence CSV", "CSV หลักฐานการรับเงิน")}</Button>
         <Button variant="outline" render={<Link href="/finance/costs/new" />}>
-          <Coins /> New cost
+          <Coins /> {t("New cost", "เพิ่มค่าใช้จ่าย")}
         </Button>
         <Button render={<Link href="/finance/invoices/new" />}>
-          <FilePlus2 /> New invoice
+          <FilePlus2 /> {t("New invoice", "สร้างใบแจ้งหนี้")}
         </Button>
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Unpaid total"
+          label={t("Unpaid total", "ยอดค้างชำระ")}
           value={formatTHB(unpaidSatang)}
           icon={FileWarning}
           tone={openCount > 0 ? "warning" : "default"}
-          hint={`${openCount} open invoice${openCount === 1 ? "" : "s"}`}
+          hint={t(`${openCount} open invoice${openCount === 1 ? "" : "s"}`, `ค้างชำระ ${openCount} ใบ`)}
         />
         <StatCard
-          label="Verified cash this month"
+          label={t("Verified cash this month", "เงินเข้าที่ตรวจสอบแล้วเดือนนี้")}
           value={formatTHB(revenueSatang)}
           icon={TrendingUp}
           tone="positive"
-          hint="Payments received"
+          hint={t("Payments received", "ยอดที่ได้รับชำระ")}
         />
         <StatCard
-          label="Costs this month"
+          label={t("Costs this month", "ค่าใช้จ่ายเดือนนี้")}
           value={formatTHB(costsSatang)}
           icon={Flame}
           tone="negative"
-          hint="Costs incurred"
+          hint={t("Costs incurred", "ค่าใช้จ่ายที่เกิดขึ้น")}
         />
         <StatCard
-          label="Monthly recurring forecast"
+          label={t("Monthly recurring forecast", "ประมาณการรายได้ประจำต่อเดือน")}
           value={formatTHB(mrrSatang)}
           icon={Repeat}
-          hint="Recurring revenue / month"
+          hint={t("Recurring revenue / month", "รายได้ประจำ / เดือน")}
         />
       </div>
 
@@ -220,27 +216,27 @@ export default async function FinancePage({
       <Tabs defaultValue="invoices" className="gap-4">
         <TabsList>
           <TabsTrigger value="invoices">
-            <ReceiptText /> Invoices
+            <ReceiptText /> {t("Invoices", "ใบแจ้งหนี้")}
           </TabsTrigger>
           <TabsTrigger value="costs">
-            <Receipt /> Costs
+            <Receipt /> {t("Costs", "ค่าใช้จ่าย")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="invoices">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Invoices</CardTitle>
+              <CardTitle className="text-base">{t("Invoices", "ใบแจ้งหนี้")}</CardTitle>
             </CardHeader>
             <CardContent>
               {invoiceRows.length === 0 ? (
                 <EmptyState
                   icon={ReceiptText}
-                  title="No invoices yet"
-                  description="Create your first invoice to start tracking what clients owe."
+                  title={t("No invoices yet", "ยังไม่มีใบแจ้งหนี้")}
+                  description={t("Create your first invoice to start tracking what clients owe.", "สร้างใบแจ้งหนี้แรกเพื่อเริ่มติดตามยอดที่ลูกค้าค้างชำระ")}
                   action={
                     <Button render={<Link href="/finance/invoices/new" />}>
-                      <FilePlus2 /> New invoice
+                      <FilePlus2 /> {t("New invoice", "สร้างใบแจ้งหนี้")}
                     </Button>
                   }
                   className="border-0"
@@ -248,20 +244,20 @@ export default async function FinancePage({
               ) : filteredInvoiceRows.length === 0 ? (
                 <EmptyState
                   icon={ReceiptText}
-                  title="No matching invoices"
-                  description="No invoices match the selected status."
+                  title={t("No matching invoices", "ไม่พบใบแจ้งหนี้ที่ค้นหา")}
+                  description={t("No invoices match the selected status.", "ไม่มีใบแจ้งหนี้ในสถานะที่เลือก")}
                   className="border-0"
                 />
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Number</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Due</TableHead>
-                      <TableHead className="text-right">Outstanding</TableHead>
+                      <TableHead>{t("Number", "เลขที่")}</TableHead>
+                      <TableHead>{t("Client", "ลูกค้า")}</TableHead>
+                      <TableHead>{t("Status", "สถานะ")}</TableHead>
+                      <TableHead className="text-right">{t("Amount", "จำนวนเงิน")}</TableHead>
+                      <TableHead>{t("Due", "ครบกำหนด")}</TableHead>
+                      <TableHead className="text-right">{t("Outstanding", "ค้างชำระ")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -277,7 +273,7 @@ export default async function FinancePage({
                           {inv.is_recurring ? (
                             <Repeat
                               className="text-muted-foreground ml-1.5 inline size-3.5 align-text-bottom"
-                              aria-label="Recurring"
+                              aria-label={t("Recurring", "ออกประจำ")}
                             />
                           ) : null}
                         </TableCell>
@@ -308,17 +304,17 @@ export default async function FinancePage({
         <TabsContent value="costs">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Costs</CardTitle>
+              <CardTitle className="text-base">{t("Costs", "ค่าใช้จ่าย")}</CardTitle>
             </CardHeader>
             <CardContent>
               {costs.length === 0 ? (
                 <EmptyState
                   icon={Receipt}
-                  title="No costs logged"
-                  description="Track software, contractors, and other operating costs here."
+                  title={t("No costs logged", "ยังไม่มีค่าใช้จ่าย")}
+                  description={t("Track software, contractors, and other operating costs here.", "บันทึกค่าซอฟต์แวร์ ผู้รับจ้าง และค่าใช้จ่ายดำเนินงานอื่น ๆ ที่นี่")}
                   action={
                     <Button render={<Link href="/finance/costs/new" />}>
-                      <Coins /> New cost
+                      <Coins /> {t("New cost", "เพิ่มค่าใช้จ่าย")}
                     </Button>
                   }
                   className="border-0"
@@ -327,19 +323,19 @@ export default async function FinancePage({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Category</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Vendor</TableHead>
-                      <TableHead>Project</TableHead>
-                      <TableHead className="w-10" aria-label="Actions" />
+                      <TableHead>{t("Category", "หมวดหมู่")}</TableHead>
+                      <TableHead className="text-right">{t("Amount", "จำนวนเงิน")}</TableHead>
+                      <TableHead>{t("Date", "วันที่")}</TableHead>
+                      <TableHead>{t("Vendor", "ผู้ขาย")}</TableHead>
+                      <TableHead>{t("Project", "โปรเจกต์")}</TableHead>
+                      <TableHead className="w-10" aria-label={t("Actions", "การดำเนินการ")} />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {costs.map((c) => (
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">
-                          {COST_CATEGORY_LABEL[c.category]}
+                          {enumLabel(t, "cost_category", c.category)}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
                           {formatTHB(c.amount_satang)}
@@ -352,7 +348,10 @@ export default async function FinancePage({
                         <TableCell className="text-right">
                           <DeleteCostButton
                             id={c.id}
-                            label={`${COST_CATEGORY_LABEL[c.category]} cost`}
+                            label={t(
+                              `${enumLabel(t, "cost_category", c.category)} cost`,
+                              `ค่าใช้จ่าย${enumLabel(t, "cost_category", c.category)}`
+                            )}
                           />
                         </TableCell>
                       </TableRow>

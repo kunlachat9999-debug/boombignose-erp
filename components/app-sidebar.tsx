@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LogOut } from "lucide-react"
 
+import { LocaleToggle, useT } from "@/components/locale-provider"
 import { NAV_ITEMS } from "@/components/nav"
 import { OrgSwitcher, type OrgOption } from "@/components/org-switcher"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -20,6 +21,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { enumLabel } from "@/lib/enum-labels"
 
 export function AppSidebar({
   email,
@@ -33,6 +35,7 @@ export function AppSidebar({
   currentOrgId: string
 }) {
   const pathname = usePathname()
+  const t = useT()
 
   return (
     <Sidebar collapsible="icon">
@@ -51,15 +54,16 @@ export function AppSidebar({
                 const active =
                   pathname === item.href || pathname.startsWith(`${item.href}/`)
                 const Icon = item.icon
+                const title = t(item.title, item.titleTh)
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       isActive={active}
-                      tooltip={item.title}
+                      tooltip={title}
                       render={<Link href={item.href} />}
                     >
                       <Icon />
-                      <span>{item.title}</span>
+                      <span>{title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
@@ -70,6 +74,7 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter>
+        <LocaleToggle className="justify-start group-data-[collapsible=icon]:hidden" />
         <div className="flex items-center gap-2 px-1 py-1.5">
           <Avatar className="size-7">
             <AvatarFallback className="text-xs">
@@ -79,7 +84,7 @@ export function AppSidebar({
           <div className="grid flex-1 leading-tight group-data-[collapsible=icon]:hidden">
             <span className="truncate text-xs font-medium">{email ?? "—"}</span>
             <span className="text-muted-foreground text-[10px] tracking-wide uppercase">
-              {role}
+              {enumLabel(t, "role_enum", role)}
             </span>
           </div>
           <form
@@ -87,7 +92,7 @@ export function AppSidebar({
             method="post"
             className="group-data-[collapsible=icon]:hidden"
           >
-            <Button type="submit" variant="ghost" size="icon-sm" aria-label="Sign out">
+            <Button type="submit" variant="ghost" size="icon-sm" aria-label={t("Sign out", "ออกจากระบบ")}>
               <LogOut />
             </Button>
           </form>

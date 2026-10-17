@@ -21,20 +21,32 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CalendarLegend } from "./_components/calendar-legend"
 import { DayCell } from "./_components/day-cell"
 import type { CalendarItem, CalendarTone } from "./types"
+import { enumLabel } from "@/lib/enum-labels"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const
+const WEEKDAYS = [
+  ["Mon", "จ."],
+  ["Tue", "อ."],
+  ["Wed", "พ."],
+  ["Thu", "พฤ."],
+  ["Fri", "ศ."],
+  ["Sat", "ส."],
+  ["Sun", "อา."],
+] as const
 
-const ACTIVITY_META: Record<
-  Enums<"activity_type">,
-  { label: string; tone: CalendarTone }
-> = {
-  follow_up: { label: "Follow-up", tone: "amber" },
-  meeting: { label: "Meeting", tone: "violet" },
-  call: { label: "Call", tone: "blue" },
-  email: { label: "Email", tone: "neutral" },
-  note: { label: "Note", tone: "neutral" },
+const TH_MONTHS = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+]
+
+const ACTIVITY_TONE: Record<Enums<"activity_type">, CalendarTone> = {
+  follow_up: "amber",
+  meeting: "violet",
+  call: "blue",
+  email: "neutral",
+  note: "neutral",
 }
 
 export default async function CalendarPage({
@@ -43,6 +55,9 @@ export default async function CalendarPage({
   searchParams: Promise<{ month?: string }>
 }) {
   const ctx = await requireOrgContext()
+  const t = await getT()
+  const label = (year: number, month: number) =>
+    t(monthLabel(year, month), `${TH_MONTHS[month - 1]} ${year}`)
   const supabase = await createClient()
   const today = todayISO()
 
@@ -85,13 +100,13 @@ export default async function CalendarPage({
 
   for (const a of activitiesRes.data ?? []) {
     if (!a.due_date) continue
-    const meta = ACTIVITY_META[a.type]
+    const typeLabel = enumLabel(t, "activity_type", a.type)
     const client = a.clients?.name
     items.push({
       id: `activity-${a.id}`,
       date: a.due_date,
-      label: client ? `${meta.label} · ${client}` : meta.label,
-      tone: meta.tone,
+      label: client ? `${typeLabel} · ${client}` : typeLabel,
+      tone: ACTIVITY_TONE[a.type],
       href: a.client_id ? `/clients/${a.client_id}` : undefined,
     })
   }
@@ -101,7 +116,7 @@ export default async function CalendarPage({
     items.push({
       id: `invoice-${inv.id}`,
       date: inv.due_date,
-      label: `Invoice ${inv.number} due`,
+      label: t(`Invoice ${inv.number} due`, `ใบแจ้งหนี้ ${inv.number} ครบกำหนด`),
       tone: "red",
       href: `/finance/invoices/${inv.id}`,
     })
@@ -112,7 +127,7 @@ export default async function CalendarPage({
     items.push({
       id: `project-${p.id}`,
       date: p.deadline,
-      label: `${p.name} deadline`,
+      label: t(`${p.name} deadline`, `กำหนดส่ง ${p.name}`),
       tone: "emerald",
       href: `/projects/${p.id}`,
     })
@@ -126,13 +141,16 @@ export default async function CalendarPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Calendar"
-        description="Follow-ups, meetings, invoice due dates, and project deadlines."
+        title={t("Calendar", "ปฏิทิน")}
+        description={t(
+          "Follow-ups, meetings, invoice due dates, and project deadlines.",
+          "งานติดตาม การประชุม วันครบกำหนดใบแจ้งหนี้ และกำหนดส่งโปรเจกต์"
+        )}
       >
         <Button
           variant="outline"
           size="icon"
-          aria-label={`Previous month (${monthLabel(prev.year, prev.month)})`}
+          aria-label={`${t("Previous month", "เดือนก่อนหน้า")} (${label(prev.year, prev.month)})`}
           render={
             <Link href={`/calendar?month=${formatMonthKey(prev.year, prev.month)}`} />
           }
@@ -143,12 +161,12 @@ export default async function CalendarPage({
           variant="outline"
           render={<Link href={`/calendar?month=${currentMonthKey()}`} />}
         >
-          <CalendarDays /> Today
+          <CalendarDays /> {t("Today", "วันนี้")}
         </Button>
         <Button
           variant="outline"
           size="icon"
-          aria-label={`Next month (${monthLabel(next.year, next.month)})`}
+          aria-label={`${t("Next month", "เดือนถัดไป")} (${label(next.year, next.month)})`}
           render={
             <Link href={`/calendar?month=${formatMonthKey(next.year, next.month)}`} />
           }
@@ -159,7 +177,7 @@ export default async function CalendarPage({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-heading text-lg font-medium">
-          {monthLabel(ym.year, ym.month)}
+          {label(ym.year, ym.month)}
         </h2>
         <CalendarLegend />
       </div>
@@ -167,13 +185,13 @@ export default async function CalendarPage({
       <Card className="p-0">
         <CardContent className="px-0">
           <div className="grid grid-cols-7">
-            {WEEKDAYS.map((d) => (
+            {WEEKDAYS.map(([en, th]) => (
               <div
-                key={d}
+                key={en}
                 className="text-muted-foreground border-b px-1.5 py-2 text-center text-xs font-medium"
               >
-                <span className="sm:hidden">{d[0]}</span>
-                <span className="hidden sm:inline">{d}</span>
+                <span className="sm:hidden">{t(en[0], th)}</span>
+                <span className="hidden sm:inline">{t(en, th)}</span>
               </div>
             ))}
             {grid.flat().map((cell) => (

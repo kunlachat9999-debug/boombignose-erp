@@ -22,16 +22,9 @@ import {
   SavedViewsMenu,
   type SavedView,
 } from "@/app/(app)/views/saved-views-menu"
-
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: "all", label: "All statuses" },
-  { value: "draft", label: "Draft" },
-  { value: "sent", label: "Sent" },
-  { value: "partially_paid", label: "Partially paid" },
-  { value: "paid", label: "Paid" },
-  { value: "overdue", label: "Overdue" },
-  { value: "cancelled", label: "Cancelled" },
-]
+import { useT } from "@/components/locale-provider"
+import { enumLabel } from "@/lib/enum-labels"
+import { Constants } from "@/lib/types/database"
 
 /**
  * Finance filter + export bar. Status filters the invoices table via the URL;
@@ -46,6 +39,14 @@ export function FinanceToolbar({
   savedViews: SavedView[]
 }) {
   const router = useRouter()
+  const t = useT()
+  const statusOptions = [
+    { value: "all", label: t("All statuses", "ทุกสถานะ") },
+    ...Constants.public.Enums.invoice_status.map((s) => ({
+      value: s,
+      label: enumLabel(t, "invoice_status", s),
+    })),
+  ]
   const pathname = usePathname()
 
   const config: ViewConfig = status ? { status } : {}
@@ -63,7 +64,7 @@ export function FinanceToolbar({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select
-        items={STATUS_OPTIONS}
+        items={statusOptions}
         value={status || "all"}
         onValueChange={(v) => onStatusChange(String(v))}
       >
@@ -71,7 +72,7 @@ export function FinanceToolbar({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {STATUS_OPTIONS.map((opt) => (
+          {statusOptions.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
             </SelectItem>
@@ -82,7 +83,7 @@ export function FinanceToolbar({
       {status ? (
         <Button variant="ghost" size="sm" render={<Link href={pathname} />}>
           <X />
-          Clear
+          {t("Clear", "ล้าง")}
         </Button>
       ) : null}
 
@@ -99,7 +100,7 @@ export function FinanceToolbar({
           render={<Link href={invoicesExportHref} />}
         >
           <Download />
-          Export invoices CSV
+          {t("Export invoices CSV", "ส่งออก CSV ใบแจ้งหนี้")}
         </Button>
         <Button
           variant="outline"
@@ -107,7 +108,7 @@ export function FinanceToolbar({
           render={<Link href="/finance/costs/export" />}
         >
           <Download />
-          Export costs CSV
+          {t("Export costs CSV", "ส่งออก CSV ค่าใช้จ่าย")}
         </Button>
       </div>
     </div>

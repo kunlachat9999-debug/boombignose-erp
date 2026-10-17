@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { DealForm, type DealFormValues } from "../../_components/deal-form"
 import { DeleteDealButton } from "../../_components/delete-deal-button"
 import { updateDeal } from "../../actions"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -18,6 +19,7 @@ export default async function EditDealPage({
 }) {
   const { id } = await params
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const [{ data: deal }, { data: clients }] = await Promise.all([
@@ -52,7 +54,7 @@ export default async function EditDealPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Edit deal" description={deal.title}>
+      <PageHeader title={t("Edit deal", "แก้ไขดีล")} description={deal.title}>
         <DeleteDealButton dealId={deal.id} />
       </PageHeader>
       <Card className="max-w-2xl">
@@ -61,7 +63,7 @@ export default async function EditDealPage({
             clients={clients ?? []}
             action={action}
             defaultValues={defaultValues}
-            submitLabel="Save changes"
+            submitLabel={t("Save changes", "บันทึกการเปลี่ยนแปลง")}
           />
         </CardContent>
       </Card>

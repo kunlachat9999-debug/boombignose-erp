@@ -10,24 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { Enums } from "@/lib/types/database"
+import { Constants, type Enums } from "@/lib/types/database"
 import { updateProjectStatus } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
 
 type ProjectStatus = Enums<"project_status">
-
-const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
-  { value: "not_started", label: "Not started" },
-  { value: "in_progress", label: "In progress" },
-  { value: "review", label: "Review" },
-  { value: "delivered", label: "Delivered" },
-  { value: "support", label: "Support" },
-  { value: "paused", label: "Paused" },
-  { value: "cancelled", label: "Cancelled" },
-]
-
-const STATUS_LABEL = Object.fromEntries(
-  STATUS_OPTIONS.map((s) => [s.value, s.label])
-) as Record<ProjectStatus, string>
 
 export function StatusSelect({
   projectId,
@@ -37,6 +26,7 @@ export function StatusSelect({
   status: ProjectStatus
 }) {
   const [pending, startTransition] = useTransition()
+  const t = useT()
 
   return (
     <Select
@@ -49,18 +39,18 @@ export function StatusSelect({
             id: projectId,
             status: v as ProjectStatus,
           })
-          if (res?.error) toast.error(res.error)
-          else toast.success("Status updated")
+          if (res?.error) toast.error(translateMessage(t, res.error))
+          else toast.success(t("Status updated", "อัปเดตสถานะแล้ว"))
         })
       }}
     >
       <SelectTrigger size="sm">
-        <SelectValue>{(v: ProjectStatus) => STATUS_LABEL[v]}</SelectValue>
+        <SelectValue>{(v: ProjectStatus) => enumLabel(t, "project_status", v)}</SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {STATUS_OPTIONS.map((s) => (
-          <SelectItem key={s.value} value={s.value}>
-            {s.label}
+        {Constants.public.Enums.project_status.map((s) => (
+          <SelectItem key={s} value={s}>
+            {enumLabel(t, "project_status", s)}
           </SelectItem>
         ))}
       </SelectContent>

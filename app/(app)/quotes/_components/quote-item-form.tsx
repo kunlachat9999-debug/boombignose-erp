@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button"
 
 import { addQuoteItem } from "../actions"
 import { serviceMoneyInput, serviceQuantityInput } from "@/lib/workflows/service"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 const Schema = z.object({
   description: z.string().min(1, "Description is required"),
@@ -31,6 +33,7 @@ type Values = z.infer<typeof Schema>
 
 export function QuoteItemForm({ quoteId }: { quoteId: string }) {
   const router = useRouter()
+  const t = useT()
   const form = useForm<z.input<typeof Schema>, unknown, Values>({
     resolver: zodResolver(Schema),
     defaultValues: {
@@ -46,10 +49,10 @@ export function QuoteItemForm({ quoteId }: { quoteId: string }) {
         onSubmit={form.handleSubmit(async (values) => {
           const res = await addQuoteItem({ quote_id: quoteId, ...values })
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
-          toast.success("Item added")
+          toast.success(t("Item added", "เพิ่มรายการแล้ว"))
           form.reset({ description: "", quantity: 1, unitPriceBaht: 0 })
           router.refresh()
         })}
@@ -60,9 +63,9 @@ export function QuoteItemForm({ quoteId }: { quoteId: string }) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t("Description", "รายละเอียด")}</FormLabel>
               <FormControl>
-                <Input placeholder="Design sprint, week 1…" {...field} />
+                <Input placeholder={t("Design sprint, week 1…", "ออกแบบ สัปดาห์ที่ 1…")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -73,7 +76,7 @@ export function QuoteItemForm({ quoteId }: { quoteId: string }) {
           name="quantity"
           render={({ field }) => (
             <FormItem className="sm:w-24">
-              <FormLabel>Qty</FormLabel>
+              <FormLabel>{t("Qty", "จำนวน")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -96,7 +99,7 @@ export function QuoteItemForm({ quoteId }: { quoteId: string }) {
           name="unitPriceBaht"
           render={({ field }) => (
             <FormItem className="sm:w-32">
-              <FormLabel>Unit price (฿)</FormLabel>
+              <FormLabel>{t("Unit price (฿)", "ราคาต่อหน่วย (฿)")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -116,7 +119,7 @@ export function QuoteItemForm({ quoteId }: { quoteId: string }) {
         />
         <div className="flex items-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            <Plus /> Add
+            <Plus /> {t("Add", "เพิ่ม")}
           </Button>
         </div>
       </form>

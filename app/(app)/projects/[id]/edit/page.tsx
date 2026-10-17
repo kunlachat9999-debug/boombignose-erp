@@ -14,6 +14,7 @@ import {
   type ProjectFormValues,
   type ClientOption,
 } from "../../_components/project-form"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -23,6 +24,7 @@ export default async function EditProjectPage({
   params: Promise<{ id: string }>
 }) {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const { id } = await params
   const supabase = await createClient()
 
@@ -59,9 +61,9 @@ export default async function EditProjectPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Edit project" description={project.name}>
+      <PageHeader title={t("Edit project", "แก้ไขโปรเจกต์")} description={project.name}>
         <Button variant="outline" render={<Link href={`/projects/${id}`} />}>
-          <ArrowLeft data-icon="inline-start" /> Back
+          <ArrowLeft data-icon="inline-start" /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -71,7 +73,7 @@ export default async function EditProjectPage({
             action={action}
             clients={clients}
             defaultValues={defaultValues}
-            submitLabel="Save changes"
+            submitLabel={t("Save changes", "บันทึกการเปลี่ยนแปลง")}
           />
         </CardContent>
       </Card>

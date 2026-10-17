@@ -20,6 +20,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { SettingsForm } from "./_components/settings-form"
 import { TeamInvitations } from "./_components/team-invitations"
 import { updateOrgSettings } from "./actions"
+import { enumLabel } from "@/lib/enum-labels"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -33,6 +35,7 @@ function initials(name: string | null, fallback: string): string {
 
 export default async function SettingsPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const canEdit = ctx.role === "owner" || ctx.role === "admin"
 
@@ -91,25 +94,28 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Settings"
-        description="Workspace finances and your team. Cash here drives the dashboard."
+        title={t("Settings", "ตั้งค่า")}
+        description={t(
+          "Workspace finances and your team. Cash here drives the dashboard.",
+          "การเงินของพื้นที่ทำงานและทีมของคุณ ยอดเงินสดที่นี่ใช้แสดงในแดชบอร์ด"
+        )}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
-          label="Cash on hand"
+          label={t("Cash on hand", "เงินสดคงเหลือ")}
           value={formatTHB(cashSatang)}
           icon={Wallet}
         />
         <StatCard
-          label="Monthly burn override"
-          value={burnSatang === null ? "Not set" : formatTHB(burnSatang)}
+          label={t("Monthly burn override", "กำหนดรายจ่ายต่อเดือนเอง")}
+          value={burnSatang === null ? t("Not set", "ไม่ได้กำหนด") : formatTHB(burnSatang)}
           icon={Flame}
           tone={burnSatang === null ? "default" : "warning"}
-          hint={burnSatang === null ? "Using actual recorded costs" : undefined}
+          hint={burnSatang === null ? t("Using actual recorded costs", "ใช้ค่าใช้จ่ายจริงที่บันทึกไว้") : undefined}
         />
         <StatCard
-          label="Team members"
+          label={t("Team members", "สมาชิกทีม")}
           value={String(team.length)}
           icon={Users}
         />
@@ -118,11 +124,11 @@ export default async function SettingsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Workspace</CardTitle>
+            <CardTitle className="text-base">{t("Workspace", "พื้นที่ทำงาน")}</CardTitle>
             <CardDescription>
               {canEdit
-                ? "Update your workspace name and finances."
-                : "Financial settings (view only)."}
+                ? t("Update your workspace name and finances.", "แก้ไขชื่อพื้นที่ทำงานและข้อมูลการเงิน")
+                : t("Financial settings (view only).", "การตั้งค่าการเงิน (ดูอย่างเดียว)")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -137,24 +143,24 @@ export default async function SettingsPage() {
               <div className="space-y-4">
                 <Alert>
                   <Lock className="size-4" />
-                  <AlertTitle>View only</AlertTitle>
+                  <AlertTitle>{t("View only", "ดูอย่างเดียว")}</AlertTitle>
                   <AlertDescription>
-                    Only an owner or admin can change workspace settings.
+                    {t("Only an owner or admin can change workspace settings.", "เฉพาะเจ้าของหรือผู้ดูแลเท่านั้นที่เปลี่ยนการตั้งค่าได้")}
                   </AlertDescription>
                 </Alert>
                 <dl className="divide-y text-sm">
                   <div className="flex items-center justify-between py-2.5">
-                    <dt className="text-muted-foreground">Workspace name</dt>
+                    <dt className="text-muted-foreground">{t("Workspace name", "ชื่อพื้นที่ทำงาน")}</dt>
                     <dd className="font-medium">{ctx.orgName}</dd>
                   </div>
                   <div className="flex items-center justify-between py-2.5">
-                    <dt className="text-muted-foreground">Cash balance</dt>
+                    <dt className="text-muted-foreground">{t("Cash balance", "ยอดเงินสด")}</dt>
                     <dd className="font-medium">{formatTHB(cashSatang)}</dd>
                   </div>
                   <div className="flex items-center justify-between py-2.5">
-                    <dt className="text-muted-foreground">Monthly burn override</dt>
+                    <dt className="text-muted-foreground">{t("Monthly burn override", "กำหนดรายจ่ายต่อเดือนเอง")}</dt>
                     <dd className="font-medium">
-                      {burnSatang === null ? "Not set" : formatTHB(burnSatang)}
+                      {burnSatang === null ? t("Not set", "ไม่ได้กำหนด") : formatTHB(burnSatang)}
                     </dd>
                   </div>
                 </dl>
@@ -165,15 +171,15 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Team</CardTitle>
-            <CardDescription>People with access to this workspace.</CardDescription>
+            <CardTitle className="text-base">{t("Team", "ทีม")}</CardTitle>
+            <CardDescription>{t("People with access to this workspace.", "ผู้ที่เข้าถึงพื้นที่ทำงานนี้ได้")}</CardDescription>
           </CardHeader>
           <CardContent>
             {team.length === 0 ? (
               <EmptyState
                 icon={Users}
-                title="No team members"
-                description="Invitations will appear here once teammates join."
+                title={t("No team members", "ยังไม่มีสมาชิกทีม")}
+                description={t("Invitations will appear here once teammates join.", "คำเชิญจะแสดงที่นี่เมื่อเพื่อนร่วมทีมเข้าร่วม")}
                 className="border-0 p-6"
               />
             ) : (
@@ -191,11 +197,11 @@ export default async function SettingsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-medium">
-                          {member.fullName ?? "Unnamed teammate"}
+                          {member.fullName ?? t("Unnamed teammate", "สมาชิกที่ยังไม่ตั้งชื่อ")}
                         </span>
                         {member.isSelf ? (
                           <Badge variant="secondary" className="shrink-0">
-                            You
+                            {t("You", "คุณ")}
                           </Badge>
                         ) : null}
                       </div>
@@ -206,7 +212,7 @@ export default async function SettingsPage() {
                       ) : null}
                     </div>
                     <Badge variant="outline" className="shrink-0 capitalize">
-                      {member.role}
+                      {enumLabel(t, "role_enum", member.role)}
                     </Badge>
                   </li>
                 ))}
@@ -219,10 +225,12 @@ export default async function SettingsPage() {
       {canEdit ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Invitations</CardTitle>
+            <CardTitle className="text-base">{t("Invitations", "คำเชิญ")}</CardTitle>
             <CardDescription>
-              Invite teammates by email. They join this workspace when they
-              accept the link.
+              {t(
+                "Invite teammates by email. They join this workspace when they accept the link.",
+                "เชิญเพื่อนร่วมทีมทางอีเมล เขาจะเข้าร่วมพื้นที่ทำงานเมื่อกดรับลิงก์"
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -241,9 +249,9 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Integrations</CardTitle>
+          <CardTitle className="text-base">{t("Integrations", "การเชื่อมต่อ")}</CardTitle>
           <CardDescription>
-            Connect BoomBigNose to the tools you already use.
+            {t("Connect BoomBigNose to the tools you already use.", "เชื่อมต่อ BoomBigNose กับเครื่องมือที่คุณใช้อยู่")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -255,9 +263,9 @@ export default async function SettingsPage() {
               <PlugZap className="size-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">Accounting sync</p>
+              <p className="text-sm font-medium">{t("Accounting sync", "ซิงก์ระบบบัญชี")}</p>
               <p className="text-muted-foreground truncate text-xs">
-                Scaffold invoice syncing to FlowAccount, PEAK or Xero.
+                {t("Scaffold invoice syncing to FlowAccount, PEAK or Xero.", "ซิงก์ใบแจ้งหนี้ไปยัง FlowAccount, PEAK หรือ Xero")}
               </p>
             </div>
             <ChevronRight className="text-muted-foreground size-4 shrink-0" />

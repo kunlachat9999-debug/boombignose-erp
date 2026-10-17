@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import type { UpdateOrgSettingsInput } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 // The form keeps the baht fields as raw strings (so the burn field can be left
 // blank to clear the override, and `field.value` stays a string for <Input>).
@@ -53,6 +55,7 @@ export function SettingsForm({
   defaultBurnBaht: number | null
   action: (input: UpdateOrgSettingsInput) => Promise<{ error?: string }>
 }) {
+  const t = useT()
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -72,8 +75,8 @@ export function SettingsForm({
             cashBalanceBaht: Number(values.cashBalanceBaht),
             monthlyBurnBaht: burn === "" ? undefined : Number(burn),
           })
-          if (res?.error) return toast.error(res.error)
-          toast.success("Settings saved")
+          if (res?.error) return toast.error(translateMessage(t, res.error))
+          toast.success(t("Settings saved", "บันทึกการตั้งค่าแล้ว"))
         })}
         className="space-y-5"
       >
@@ -82,7 +85,7 @@ export function SettingsForm({
           name="orgName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Workspace name</FormLabel>
+              <FormLabel>{t("Workspace name", "ชื่อพื้นที่ทำงาน")}</FormLabel>
               <FormControl>
                 <Input placeholder="BoomBigNose" {...field} />
               </FormControl>
@@ -96,7 +99,7 @@ export function SettingsForm({
           name="cashBalanceBaht"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cash balance (฿)</FormLabel>
+              <FormLabel>{t("Cash balance (฿)", "ยอดเงินสด (฿)")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -108,7 +111,10 @@ export function SettingsForm({
                 />
               </FormControl>
               <FormDescription>
-                Your current bank balance. Powers cash &amp; runway on the dashboard.
+                {t(
+                  "Your current bank balance. Powers cash & runway on the dashboard.",
+                  "ยอดเงินในบัญชีปัจจุบัน ใช้คำนวณเงินสดและระยะเวลาเงินสำรองในแดชบอร์ด"
+                )}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -120,20 +126,22 @@ export function SettingsForm({
           name="monthlyBurnBaht"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Monthly burn override (฿)</FormLabel>
+              <FormLabel>{t("Monthly burn override (฿)", "กำหนดรายจ่ายต่อเดือนเอง (฿)")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   min={0}
                   step="0.01"
                   inputMode="decimal"
-                  placeholder="Leave blank to use actual burn"
+                  placeholder={t("Leave blank to use actual burn", "เว้นว่างไว้เพื่อใช้รายจ่ายจริง")}
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                Optional. Set a fixed monthly burn for runway; leave blank to use
-                your actual recorded costs.
+                {t(
+                  "Optional. Set a fixed monthly burn for runway; leave blank to use your actual recorded costs.",
+                  "ไม่บังคับ กำหนดรายจ่ายคงที่ต่อเดือนเพื่อคำนวณระยะเวลาเงินสำรอง หรือเว้นว่างเพื่อใช้ค่าใช้จ่ายจริงที่บันทึกไว้"
+                )}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -141,7 +149,9 @@ export function SettingsForm({
         />
 
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Saving…" : "Save changes"}
+          {form.formState.isSubmitting
+            ? t("Saving…", "กำลังบันทึก…")
+            : t("Save changes", "บันทึกการเปลี่ยนแปลง")}
         </Button>
       </form>
     </Form>

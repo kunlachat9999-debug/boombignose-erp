@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { deleteTimeEntry } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 export function DeleteTimeEntryButton({
   id,
@@ -26,6 +28,7 @@ export function DeleteTimeEntryButton({
   id: string
   label: string
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -36,7 +39,7 @@ export function DeleteTimeEntryButton({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Delete ${label}`}
+            aria-label={t(`Delete ${label}`, `ลบ ${label}`)}
           >
             <Trash2 className="text-muted-foreground" />
           </Button>
@@ -44,13 +47,16 @@ export function DeleteTimeEntryButton({
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this time entry?</AlertDialogTitle>
+          <AlertDialogTitle>{t("Delete this time entry?", "ลบรายการเวลานี้?")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {label} will be permanently removed. This cannot be undone.
+            {t(
+              `${label} will be permanently removed. This cannot be undone.`,
+              `${label} จะถูกลบถาวร ไม่สามารถย้อนกลับได้`
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("Cancel", "ยกเลิก")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
             onClick={(e) => {
@@ -58,15 +64,15 @@ export function DeleteTimeEntryButton({
               startTransition(async () => {
                 const res = await deleteTimeEntry({ id })
                 if (res?.error) {
-                  toast.error(res.error)
+                  toast.error(translateMessage(t, res.error))
                   return
                 }
-                toast.success("Time entry deleted")
+                toast.success(t("Time entry deleted", "ลบรายการเวลาแล้ว"))
                 setOpen(false)
               })
             }}
           >
-            Delete
+            {t("Delete", "ลบ")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

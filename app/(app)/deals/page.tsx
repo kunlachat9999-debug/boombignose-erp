@@ -21,22 +21,13 @@ import { cn } from "@/lib/utils"
 import { DealsToolbar } from "./_components/deals-toolbar"
 import type { SavedView } from "@/app/(app)/views/saved-views-menu"
 import type { ViewConfig } from "@/app/(app)/views/view-config"
+import { enumLabel } from "@/lib/enum-labels"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
-type BoardColumn = { stage: DealStage; label: string }
-
-const COLUMNS: BoardColumn[] = [
-  { stage: "lead", label: "Lead" },
-  { stage: "contacted", label: "Contacted" },
-  { stage: "discovery", label: "Discovery" },
-  { stage: "proposal", label: "Proposal" },
-  { stage: "negotiation", label: "Negotiation" },
-  { stage: "won", label: "Won" },
-  { stage: "lost", label: "Lost" },
-]
-
 const DEAL_STAGES = Constants.public.Enums.deal_stage
+const COLUMNS = DEAL_STAGES.map((stage) => ({ stage }))
 
 /** Pull the known filter keys out of a saved-view config row. */
 function toViewConfig(config: unknown): ViewConfig {
@@ -53,6 +44,7 @@ export default async function DealsPage({
   searchParams: Promise<{ stage?: string; q?: string }>
 }) {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const today = todayISO()
 
@@ -113,25 +105,28 @@ export default async function DealsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Deals" description="Your sales pipeline and follow-ups.">
+      <PageHeader
+        title={t("Deals", "ดีล")}
+        description={t("Your sales pipeline and follow-ups.", "ยอดขายที่รอปิดและงานติดตามของคุณ")}
+      >
         <Button render={<Link href="/deals/new" />}>
           <Plus className="size-4" />
-          New deal
+          {t("New deal", "เพิ่มดีล")}
         </Button>
       </PageHeader>
 
       <div className="grid grid-cols-2 gap-4 sm:max-w-lg">
         <StatCard
-          label="Open pipeline"
+          label={t("Open pipeline", "ดีลที่รอปิด")}
           value={formatTHBWhole(openValue)}
           icon={Target}
-          hint="Value of deals still in play"
+          hint={t("Value of deals still in play", "มูลค่าดีลที่ยังเปิดอยู่")}
         />
         <StatCard
-          label="Weighted pipeline"
+          label={t("Weighted pipeline", "มูลค่าถ่วงน้ำหนัก")}
           value={formatTHBWhole(weighted)}
           icon={Target}
-          hint="By stage win-probability"
+          hint={t("By stage win-probability", "ตามโอกาสปิดของแต่ละขั้นตอน")}
         />
       </div>
 
@@ -142,20 +137,20 @@ export default async function DealsPage({
       {allDeals.length === 0 ? (
         <EmptyState
           icon={Target}
-          title="No deals yet"
-          description="Create your first deal to start tracking your pipeline."
+          title={t("No deals yet", "ยังไม่มีดีล")}
+          description={t("Create your first deal to start tracking your pipeline.", "สร้างดีลแรกเพื่อเริ่มติดตามยอดขาย")}
           action={
             <Button render={<Link href="/deals/new" />}>
               <Plus className="size-4" />
-              New deal
+              {t("New deal", "เพิ่มดีล")}
             </Button>
           }
         />
       ) : deals.length === 0 ? (
         <EmptyState
           icon={Target}
-          title="No matching deals"
-          description="No deals match the current filters. Try clearing the search or stage filter."
+          title={t("No matching deals", "ไม่พบดีลที่ค้นหา")}
+          description={t("No deals match the current filters. Try clearing the search or stage filter.", "ไม่มีดีลที่ตรงกับตัวกรอง ลองล้างคำค้นหาหรือตัวกรองขั้นตอน")}
         />
       ) : (
         <div className="-mx-4 overflow-x-auto px-4 pb-2 md:-mx-6 md:px-6">
@@ -170,7 +165,9 @@ export default async function DealsPage({
                 <div key={col.stage} className="w-72 shrink-0">
                   <div className="mb-2 flex items-center justify-between px-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{col.label}</span>
+                      <span className="text-sm font-semibold">
+                        {enumLabel(t, "deal_stage", col.stage)}
+                      </span>
                       <span className="text-muted-foreground text-xs">
                         {colDeals.length}
                       </span>
@@ -182,7 +179,7 @@ export default async function DealsPage({
                   <div className="space-y-2 rounded-lg bg-muted/40 p-2">
                     {colDeals.length === 0 ? (
                       <p className="text-muted-foreground px-2 py-6 text-center text-xs">
-                        No deals
+                        {t("No deals", "ไม่มีดีล")}
                       </p>
                     ) : (
                       colDeals.map((d) => (

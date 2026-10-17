@@ -34,6 +34,7 @@ import { QuoteStatusControls } from "../_components/quote-status-controls"
 import { QuoteStatusBadge } from "../_components/quote-status-badge"
 import { EmailQuoteButton } from "../_components/email-quote-button"
 import type { Option } from "../_components/form-fields"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -53,6 +54,7 @@ export default async function QuoteDetailPage({
 }) {
   const { id } = await params
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const [quoteRes, itemsRes, clientsRes, projectsRes] = await Promise.all([
@@ -121,50 +123,50 @@ export default async function QuoteDetailPage({
     <div className="space-y-6">
       <PageHeader
         title={quote.number}
-        description={quote.clients?.name ?? "Quote"}
+        description={quote.clients?.name ?? t("Quote", "ใบเสนอราคา")}
       >
         <Button
           variant="outline"
           render={<a href={`/quotes/${quote.id}/pdf`} target="_blank" rel="noreferrer" />}
         >
-          <Download /> Download PDF
+          <Download /> {t("Download PDF", "ดาวน์โหลด PDF")}
         </Button>
         <EmailQuoteButton quoteId={quote.id} />
         <Button variant="outline" render={<Link href="/quotes" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-base">Overview</CardTitle>
+          <CardTitle className="text-base">{t("Overview", "ภาพรวม")}</CardTitle>
           <QuoteStatusBadge status={quote.status} />
         </CardHeader>
         <CardContent className="space-y-4">
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Field label="Subtotal" value={formatTHB(quote.subtotal_satang)} />
-            <Field label="Discount" value={formatTHB(quote.discount_satang)} />
+            <Field label={t("Subtotal", "ยอดก่อนส่วนลด")} value={formatTHB(quote.subtotal_satang)} />
+            <Field label={t("Discount", "ส่วนลด")} value={formatTHB(quote.discount_satang)} />
             <Field
-              label="Total"
+              label={t("Total", "ยอดรวม")}
               value={
                 <span className="font-medium">{formatTHB(quote.total_satang)}</span>
               }
             />
-            <Field label="Issue date" value={quote.issue_date ?? "—"} />
-            <Field label="Valid until" value={quote.valid_until ?? "—"} />
-            <Field label="Client" value={quote.clients?.name ?? "—"} />
-            <Field label="Project" value={linkedProject ? (
+            <Field label={t("Issue date", "วันที่ออก")} value={quote.issue_date ?? "—"} />
+            <Field label={t("Valid until", "ใช้ได้ถึง")} value={quote.valid_until ?? "—"} />
+            <Field label={t("Client", "ลูกค้า")} value={quote.clients?.name ?? "—"} />
+            <Field label={t("Project", "โปรเจกต์")} value={linkedProject ? (
               <Link href={`/projects/${linkedProject.id}`} className="hover:underline">{linkedProject.name}</Link>
             ) : "—"} />
             {quote.converted_invoice_id ? (
               <Field
-                label="Converted invoice"
+                label={t("Converted invoice", "ใบแจ้งหนี้ที่แปลงแล้ว")}
                 value={
                   <Link
                     href={`/finance/invoices/${quote.converted_invoice_id}`}
                     className="hover:underline"
                   >
-                    View invoice
+                    {t("View invoice", "ดูใบแจ้งหนี้")}
                   </Link>
                 }
               />
@@ -172,12 +174,12 @@ export default async function QuoteDetailPage({
           </dl>
 
           {deliveryMilestones?.length ? (
-            <Field label="Delivery milestones" value={
+            <Field label={t("Delivery milestones", "เป้าหมายการส่งมอบ")} value={
               <ul className="space-y-1">
                 {deliveryMilestones.map((milestone) => (
                   <li key={milestone.id}>
                     <Link href={`/projects/${milestone.project_id}#milestone-${milestone.id}`} className="hover:underline">
-                      {milestone.title} · {milestone.done ? "Done" : "Pending"}
+                      {milestone.title} · {milestone.done ? t("Done", "เสร็จแล้ว") : t("Pending", "รอดำเนินการ")}
                     </Link>
                   </li>
                 ))}
@@ -188,7 +190,7 @@ export default async function QuoteDetailPage({
           {quote.notes ? (
             <>
               <Separator />
-              <Field label="Notes" value={quote.notes} />
+              <Field label={t("Notes", "หมายเหตุ")} value={quote.notes} />
             </>
           ) : null}
 
@@ -204,26 +206,26 @@ export default async function QuoteDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Line items</CardTitle>
+          <CardTitle className="text-base">{t("Line items", "รายการ")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {items.length === 0 ? (
             <EmptyState
               icon={ListPlus}
-              title="No line items yet"
-              description="Add items below to build up this quote's total."
+              title={t("No line items yet", "ยังไม่มีรายการ")}
+              description={t("Add items below to build up this quote's total.", "เพิ่มรายการด้านล่างเพื่อคำนวณยอดรวมของใบเสนอราคา")}
               className="border-0"
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Unit price</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>{t("Description", "รายละเอียด")}</TableHead>
+                  <TableHead className="text-right">{t("Qty", "จำนวน")}</TableHead>
+                  <TableHead className="text-right">{t("Unit price", "ราคาต่อหน่วย")}</TableHead>
+                  <TableHead className="text-right">{t("Amount", "จำนวนเงิน")}</TableHead>
                   {locked ? null : (
-                    <TableHead className="w-10" aria-label="Actions" />
+                    <TableHead className="w-10" aria-label={t("Actions", "การดำเนินการ")} />
                   )}
                 </TableRow>
               </TableHeader>
@@ -253,7 +255,9 @@ export default async function QuoteDetailPage({
 
           <Separator />
           {locked ? (
-            <p className="text-muted-foreground text-sm">{quote.status === "accepted" ? "Accepted scope is locked." : "This quote is locked."}</p>
+            <p className="text-muted-foreground text-sm">{quote.status === "accepted"
+                ? t("Accepted scope is locked.", "ขอบเขตงานที่อนุมัติแล้วถูกล็อก")
+                : t("This quote is locked.", "ใบเสนอราคานี้ถูกล็อก")}</p>
           ) : (
             <QuoteItemForm quoteId={quote.id} />
           )}
@@ -263,14 +267,14 @@ export default async function QuoteDetailPage({
       {editable ? (
         <Card className="max-w-3xl">
           <CardHeader>
-            <CardTitle className="text-base">Edit quote</CardTitle>
+            <CardTitle className="text-base">{t("Edit quote", "แก้ไขใบเสนอราคา")}</CardTitle>
           </CardHeader>
           <CardContent>
             <QuoteForm
               clients={clients}
               projects={projects}
               defaultValues={defaultValues}
-              submitLabel="Save changes"
+              submitLabel={t("Save changes", "บันทึกการเปลี่ยนแปลง")}
               action={saveQuote}
             />
           </CardContent>

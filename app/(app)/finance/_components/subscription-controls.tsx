@@ -25,6 +25,9 @@ import {
   generateInvoiceNow,
   deleteSubscription,
 } from "../subscription-actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
 
 type Status = Enums<"subscription_status">
 
@@ -53,6 +56,7 @@ export function SubscriptionControls({
   isDue: boolean
 }) {
   const router = useRouter()
+  const t = useT()
   const [pending, startTransition] = useTransition()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const unacknowledged = useSyncExternalStore(subscribeToRequests, () => {
@@ -63,10 +67,12 @@ export function SubscriptionControls({
     startTransition(async () => {
       const res = await setSubscriptionStatus({ id, status: next })
       if (res?.error) {
-        toast.error(res.error)
+        toast.error(translateMessage(t, res.error))
         return
       }
-      toast.success(`Subscription ${next}`)
+      toast.success(
+        t(`Subscription ${next}`, `อัปเดตสถานะเป็น${enumLabel(t, "subscription_status", next)}แล้ว`)
+      )
       router.refresh()
     })
   }
@@ -77,13 +83,13 @@ export function SubscriptionControls({
         const command = beginInvoiceRequest(sessionStorage, orgId, id, occurrence)
         window.dispatchEvent(new Event("erp.subscription.request"))
         const res = await generateInvoiceNow({ id, occurrence: command.occurrence })
-        if (res?.error) { toast.error(res.error); return }
+        if (res?.error) { toast.error(translateMessage(t, res.error)); return }
         acknowledgeInvoiceRequest(sessionStorage, orgId, id, command.occurrence)
         window.dispatchEvent(new Event("erp.subscription.request"))
-        toast.success("Scheduled invoice draft ready")
+        toast.success(t("Scheduled invoice draft ready", "สร้างร่างใบแจ้งหนี้ตามรอบแล้ว"))
         router.refresh()
       } catch {
-        toast.error("Could not confirm the invoice request. Retry in this tab.")
+        toast.error(t("Could not confirm the invoice request. Retry in this tab.", "ยืนยันคำขอใบแจ้งหนี้ไม่ได้ กรุณาลองใหม่ในแท็บนี้"))
       }
     })
   }
@@ -97,7 +103,7 @@ export function SubscriptionControls({
           disabled={pending}
           onClick={() => changeStatus("active")}
         >
-          <Play /> Activate
+          <Play /> {t("Activate", "เปิดใช้งาน")}
         </Button>
       ) : canManage ? (
         <Button
@@ -106,7 +112,7 @@ export function SubscriptionControls({
           disabled={pending}
           onClick={() => changeStatus("paused")}
         >
-          <Pause /> Pause
+          <Pause /> {t("Pause", "พักไว้")}
         </Button>
       ) : null}
 
@@ -117,14 +123,16 @@ export function SubscriptionControls({
           disabled={pending}
           onClick={() => changeStatus("cancelled")}
         >
-          <Ban /> Cancel
+          <Ban /> {t("Cancel", "ยกเลิก")}
         </Button>
       ) : null}
 
       {canManage ? (
         <>
           <Button size="sm" disabled={pending || (!isDue && !unacknowledged) || status !== "active"} onClick={generate}>
-            <ReceiptText /> {unacknowledged ? `Retry invoice for ${unacknowledged}` : "Generate scheduled invoice"}
+            <ReceiptText /> {unacknowledged
+              ? t(`Retry invoice for ${unacknowledged}`, `ลองสร้างใบแจ้งหนี้รอบ ${unacknowledged} อีกครั้ง`)
+              : t("Generate scheduled invoice", "สร้างใบแจ้งหนี้ตามรอบ")}
           </Button>
 
           <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -134,22 +142,24 @@ export function SubscriptionControls({
                   variant="outline"
                   size="sm"
                   disabled={pending}
-                  aria-label="Delete subscription"
+                  aria-label={t("Delete subscription", "ลบรายการสมัครสมาชิก")}
                 >
-                  <Trash2 className="text-muted-foreground" /> Delete
+                  <Trash2 className="text-muted-foreground" /> {t("Delete", "ลบ")}
                 </Button>
               }
             />
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete this subscription?</AlertDialogTitle>
+                <AlertDialogTitle>{t("Delete this subscription?", "ลบรายการสมัครสมาชิกนี้?")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This subscription will be permanently removed. Invoices already
-                  generated from it are kept. This cannot be undone.
+                  {t(
+                    "This subscription will be permanently removed. Invoices already generated from it are kept. This cannot be undone.",
+                    "รายการนี้จะถูกลบถาวร ใบแจ้งหนี้ที่สร้างไปแล้วจะยังอยู่ ไม่สามารถย้อนกลับได้"
+                  )}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("Cancel", "ยกเลิก")}</AlertDialogCancel>
                 <AlertDialogAction
                   disabled={pending}
                   onClick={(e) => {
@@ -157,14 +167,14 @@ export function SubscriptionControls({
                     startTransition(async () => {
                       const res = await deleteSubscription({ id })
                       if (res?.error) {
-                        toast.error(res.error)
+                        toast.error(translateMessage(t, res.error))
                         return
                       }
-                      toast.success("Subscription deleted")
+                      toast.success(t("Subscription deleted", "ลบรายการสมัครสมาชิกแล้ว"))
                     })
                   }}
                 >
-                  Delete
+                  {t("Delete", "ลบ")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -1,6 +1,10 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { Enums } from "@/lib/types/database"
+import { useT } from "@/components/locale-provider"
+import { enumLabel } from "@/lib/enum-labels"
 
 // Local badge for quotes: the shared components/status-badge.tsx is owned by the
 // coordinator and has no quote_status variant, so we mirror its tone system here.
@@ -18,20 +22,20 @@ const TONE: Record<Tone, string> = {
   danger: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border-transparent",
 }
 
-const QUOTE_STATUS: Record<Enums<"quote_status">, { label: string; tone: Tone }> = {
-  draft: { label: "Draft", tone: "neutral" },
-  sent: { label: "Sent", tone: "info" },
-  accepted: { label: "Accepted", tone: "success" },
-  declined: { label: "Declined", tone: "danger" },
-  expired: { label: "Expired", tone: "warning" },
-  converted: { label: "Converted", tone: "progress" },
+const QUOTE_STATUS: Record<Enums<"quote_status">, Tone> = {
+  draft: "neutral",
+  sent: "info",
+  accepted: "success",
+  declined: "danger",
+  expired: "warning",
+  converted: "progress",
 }
 
 export function QuoteStatusBadge({ status }: { status: Enums<"quote_status"> }) {
-  const { label, tone } = QUOTE_STATUS[status]
+  const t = useT()
   return (
-    <Badge variant="outline" className={cn("font-medium", TONE[tone])}>
-      {label}
+    <Badge variant="outline" className={cn("font-medium", TONE[QUOTE_STATUS[status]])}>
+      {enumLabel(t, "quote_status", status)}
     </Badge>
   )
 }

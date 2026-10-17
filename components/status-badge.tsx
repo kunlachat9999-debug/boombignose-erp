@@ -1,4 +1,8 @@
+"use client"
+
+import { useT } from "@/components/locale-provider"
 import { Badge } from "@/components/ui/badge"
+import { enumLabel } from "@/lib/enum-labels"
 import { cn } from "@/lib/utils"
 import type { Enums } from "@/lib/types/database"
 
@@ -24,57 +28,57 @@ function Pill({ label, tone }: { label: string; tone: Tone }) {
   )
 }
 
-const DEAL_STAGE: Record<Enums<"deal_stage">, { label: string; tone: Tone }> = {
-  lead: { label: "Lead", tone: "neutral" },
-  contacted: { label: "Contacted", tone: "info" },
-  discovery: { label: "Discovery", tone: "info" },
-  proposal: { label: "Proposal", tone: "progress" },
-  negotiation: { label: "Negotiation", tone: "warning" },
-  won: { label: "Won", tone: "success" },
-  lost: { label: "Lost", tone: "danger" },
+const DEAL_STAGE: Record<Enums<"deal_stage">, Tone> = {
+  lead: "neutral",
+  contacted: "info",
+  discovery: "info",
+  proposal: "progress",
+  negotiation: "warning",
+  won: "success",
+  lost: "danger",
 }
 
-const PROJECT_STATUS: Record<Enums<"project_status">, { label: string; tone: Tone }> = {
-  not_started: { label: "Not started", tone: "neutral" },
-  in_progress: { label: "In progress", tone: "progress" },
-  review: { label: "Review", tone: "info" },
-  delivered: { label: "Delivered", tone: "success" },
-  support: { label: "Support", tone: "info" },
-  paused: { label: "Paused", tone: "warning" },
-  cancelled: { label: "Cancelled", tone: "danger" },
+const PROJECT_STATUS: Record<Enums<"project_status">, Tone> = {
+  not_started: "neutral",
+  in_progress: "progress",
+  review: "info",
+  delivered: "success",
+  support: "info",
+  paused: "warning",
+  cancelled: "danger",
 }
 
-const INVOICE_STATUS: Record<Enums<"invoice_status">, { label: string; tone: Tone }> = {
-  draft: { label: "Draft", tone: "neutral" },
-  sent: { label: "Sent", tone: "info" },
-  partially_paid: { label: "Partially paid", tone: "warning" },
-  paid: { label: "Paid", tone: "success" },
-  overdue: { label: "Overdue", tone: "danger" },
-  cancelled: { label: "Cancelled", tone: "neutral" },
+const INVOICE_STATUS: Record<Enums<"invoice_status">, Tone> = {
+  draft: "neutral",
+  sent: "info",
+  partially_paid: "warning",
+  paid: "success",
+  overdue: "danger",
+  cancelled: "neutral",
 }
 
-const TASK_STATUS: Record<Enums<"task_status">, { label: string; tone: Tone }> = {
-  todo: { label: "To do", tone: "neutral" },
-  in_progress: { label: "In progress", tone: "progress" },
-  done: { label: "Done", tone: "success" },
+const TASK_STATUS: Record<Enums<"task_status">, Tone> = {
+  todo: "neutral",
+  in_progress: "progress",
+  done: "success",
 }
 
 export function DealStageBadge({ stage }: { stage: Enums<"deal_stage"> }) {
-  const { label, tone } = DEAL_STAGE[stage]
-  return <Pill label={label} tone={tone} />
+  const t = useT()
+  return <Pill label={enumLabel(t, "deal_stage", stage)} tone={DEAL_STAGE[stage]} />
 }
 
 export function ProjectStatusBadge({ status }: { status: Enums<"project_status"> }) {
-  const { label, tone } = PROJECT_STATUS[status]
-  return <Pill label={label} tone={tone} />
+  const t = useT()
+  return <Pill label={enumLabel(t, "project_status", status)} tone={PROJECT_STATUS[status]} />
 }
 
 export function InvoiceStatusBadge({ status }: { status: Enums<"invoice_status"> }) {
-  const { label, tone } = INVOICE_STATUS[status]
-  return <Pill label={label} tone={tone} />
+  const t = useT()
+  return <Pill label={enumLabel(t, "invoice_status", status)} tone={INVOICE_STATUS[status]} />
 }
 
 export function TaskStatusBadge({ status }: { status: Enums<"task_status"> }) {
-  const { label, tone } = TASK_STATUS[status]
-  return <Pill label={label} tone={tone} />
+  const t = useT()
+  return <Pill label={enumLabel(t, "task_status", status)} tone={TASK_STATUS[status]} />
 }

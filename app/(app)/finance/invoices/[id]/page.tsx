@@ -49,22 +49,30 @@ import { ReviewClaimForm } from "../../_components/review-claim-form"
 import { SyncInvoiceButton } from "../../_components/sync-invoice-button"
 import { EmailInvoiceButton } from "../../_components/email-invoice-button"
 import type { Option } from "../../_components/form-fields"
+import { enumLabel } from "@/lib/enum-labels"
+import type { T } from "@/lib/i18n"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
-
-const PAYMENT_METHOD_LABEL: Record<Enums<"payment_method">, string> = {
-  transfer: "Bank transfer",
-  cash: "Cash",
-  card: "Card",
-  promptpay: "PromptPay",
-  cheque: "Cheque",
-  other: "Other",
-}
 
 const ACCOUNTING_PROVIDER_LABEL: Record<Enums<"accounting_provider">, string> = {
   flowaccount: "FlowAccount",
   peak: "PEAK",
   xero: "Xero",
+}
+
+function claimStatusLabel(t: T, status: string): string {
+  if (status === "pending") return t("Pending", "รอตรวจสอบ")
+  if (status === "verified") return t("Verified", "ตรวจสอบแล้ว")
+  if (status === "rejected") return t("Rejected", "ปฏิเสธ")
+  return status
+}
+
+function verificationLabel(t: T, state: string): string {
+  if (state === "legacy_unverified") return t("Legacy · unverified", "ยอดเดิม · ยังไม่ตรวจสอบ")
+  if (state === "legacy_reconciled") return t("Legacy · reconciled", "ยอดเดิม · กระทบยอดแล้ว")
+  if (state === "verified") return t("Verified", "ตรวจสอบแล้ว")
+  return state
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -83,6 +91,7 @@ export default async function InvoiceDetailPage({
 }) {
   const { id } = await params
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const today = todayISO()
 
@@ -196,13 +205,13 @@ export default async function InvoiceDetailPage({
     <div className="space-y-6">
       <PageHeader
         title={invoice.number}
-        description={invoice.clients?.name ?? "Invoice"}
+        description={invoice.clients?.name ?? t("Invoice", "ใบแจ้งหนี้")}
       >
         {accountingConnected ? (
           <SyncInvoiceButton invoiceId={invoice.id} />
         ) : (
           <Button variant="outline" size="sm" render={<Link href="/settings/accounting" />}>
-            <PlugZap /> Connect accounting
+            <PlugZap /> {t("Connect accounting", "เชื่อมต่อระบบบัญชี")}
           </Button>
         )}
         <Button
@@ -215,61 +224,67 @@ export default async function InvoiceDetailPage({
             />
           }
         >
-          <FileText /> Print / PDF
+          <FileText /> {t("Print / PDF", "พิมพ์ / PDF")}
         </Button>
         <EmailInvoiceButton invoiceId={invoice.id} />
         <Button variant="outline" render={<Link href="/finance" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
-      <p className="text-sm text-muted-foreground">เอกสารเพื่อการดำเนินงาน / Operational records. Tax classification, credits and withholding require accountant-approved evidence. <Link className="underline" href="/finance/business-profile">Business profile</Link></p>
-      {invoice.status === "draft" && ctx.role !== "member" ? <Card><CardHeader><CardTitle className="text-base">ออกใบแจ้งหนี้ / Issue invoice</CardTitle></CardHeader><CardContent><IssueInvoiceForm orgId={ctx.orgId} invoiceId={invoice.id} version={invoice.version} /></CardContent></Card> : null}
-      {invoice.issued_snapshot_id ? <p className="text-sm">Issued snapshot retained. Corrections must preserve the original document.</p> : invoice.status !== "draft" ? <p role="alert" className="text-sm">This legacy record has no issued snapshot. Review it before treating the printable record as an issued document.</p> : null}
+      <p className="text-sm text-muted-foreground">
+        {t(
+          "Operational records. Tax classification, credits and withholding require accountant-approved evidence. ",
+          "เอกสารเพื่อการดำเนินงาน การจัดประเภทภาษี การลดหนี้ และภาษีหัก ณ ที่จ่าย ต้องมีหลักฐานที่นักบัญชีรับรอง "
+        )}
+        <Link className="underline" href="/finance/business-profile">{t("Business profile", "ข้อมูลกิจการ")}</Link>
+      </p>
+      {invoice.status === "draft" && ctx.role !== "member" ? <Card><CardHeader><CardTitle className="text-base">{t("Issue invoice", "ออกใบแจ้งหนี้")}</CardTitle></CardHeader><CardContent><IssueInvoiceForm orgId={ctx.orgId} invoiceId={invoice.id} version={invoice.version} /></CardContent></Card> : null}
+      {invoice.issued_snapshot_id ? <p className="text-sm">{t("Issued snapshot retained. Corrections must preserve the original document.", "เก็บสำเนาเอกสารที่ออกแล้ว การแก้ไขต้องคงเอกสารต้นฉบับไว้")}</p> : invoice.status !== "draft" ? <p role="alert" className="text-sm">{t("This legacy record has no issued snapshot. Review it before treating the printable record as an issued document.", "รายการเดิมนี้ไม่มีสำเนาเอกสารที่ออก กรุณาตรวจสอบก่อนถือว่าเอกสารที่พิมพ์ได้เป็นเอกสารที่ออกแล้ว")}</p> : null}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader className="flex-row items-center justify-between">
-              <CardTitle className="text-base">Overview</CardTitle>
+              <CardTitle className="text-base">{t("Overview", "ภาพรวม")}</CardTitle>
               <InvoiceStatusBadge status={effectiveStatus} />
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                <Field label="Amount" value={formatTHB(invoice.amount_satang)} />
-                <Field label="Verified receipts" value={formatTHB(paid)} />
+                <Field label={t("Amount", "จำนวนเงิน")} value={formatTHB(invoice.amount_satang)} />
+                <Field label={t("Verified receipts", "รับชำระที่ตรวจสอบแล้ว")} value={formatTHB(paid)} />
                 <Field
-                  label="Outstanding"
+                  label={t("Outstanding", "ค้างชำระ")}
                   value={
                     <span className={outstanding > 0 ? "font-medium" : ""}>
                       {formatTHB(outstanding)}
                     </span>
                   }
                 />
-                <Field label="Discount" value={formatTHB(invoice.discount_satang)} />
-                <Field label="Issue date" value={invoice.issue_date ?? "—"} />
-                <Field label="Due date" value={invoice.due_date ?? "—"} />
+                <Field label={t("Discount", "ส่วนลด")} value={formatTHB(invoice.discount_satang)} />
+                <Field label={t("Issue date", "วันที่ออก")} value={invoice.issue_date ?? "—"} />
+                <Field label={t("Due date", "วันครบกำหนด")} value={invoice.due_date ?? "—"} />
                 <Field
-                  label="Client"
+                  label={t("Client", "ลูกค้า")}
                   value={invoice.clients?.name ?? "—"}
                 />
                 <Field
-                  label="Project"
+                  label={t("Project", "โปรเจกต์")}
                   value={invoice.projects?.name ?? "—"}
                 />
                 <Field
-                  label="Recurring"
+                  label={t("Recurring", "ออกประจำ")}
                   value={
                     invoice.is_recurring
-                      ? `Yes · ${invoice.recurring_interval ?? "—"}`
-                      : "No"
+                      ? `${t("Yes", "ใช่")} · ${invoice.recurring_interval ? enumLabel(t, "recurring_interval", invoice.recurring_interval) : "—"}`
+                      : t("No", "ไม่ใช่")
                   }
                 />
                 <Field
-                  label="Stored status"
+                  label={t("Stored status", "สถานะที่บันทึก")}
                   value={<InvoiceStatusBadge status={invoice.status} />}
                 />
                 <Field
-                  label="Accounting sync"
+                  label={t("Accounting sync", "ซิงก์ระบบบัญชี")}
                   value={
                     sync?.external_id ? (
                       <span className="space-y-0.5">
@@ -279,22 +294,36 @@ export default async function InvoiceDetailPage({
                         </span>
                         {sync.last_synced_at ? (
                           <span className="text-muted-foreground block text-xs">
-                            Synced {sync.last_synced_at.slice(0, 10)}
+                            {t("Synced ", "ซิงก์เมื่อ ")}
+                            {sync.last_synced_at.slice(0, 10)}
                           </span>
                         ) : null}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">Not synced</span>
+                      <span className="text-muted-foreground">{t("Not synced", "ยังไม่ซิงก์")}</span>
                     )
                   }
                 />
               </dl>
-              {invoice.source_quote_id ? <p className="mt-4 text-sm">Accepted quote terms are authoritative. Linked corrections are needed for changes. Source quote: <Link className="underline" href={`/quotes/${invoice.source_quote_id}`}>View accepted quote</Link></p> : null}
-              {invoice.source_milestone_id && invoice.project_id ? <p className="text-sm">Delivery milestone: <Link className="underline" href={`/projects/${invoice.project_id}`}>View project and milestones</Link></p> : null}
+              {invoice.source_quote_id ? <p className="mt-4 text-sm">
+                  {t(
+                    "Accepted quote terms are authoritative. Linked corrections are needed for changes. Source quote: ",
+                    "เงื่อนไขในใบเสนอราคาที่อนุมัติแล้วถือเป็นหลัก การเปลี่ยนแปลงต้องทำผ่านเอกสารแก้ไขที่ผูกกัน ใบเสนอราคาต้นทาง: "
+                  )}
+                  <Link className="underline" href={`/quotes/${invoice.source_quote_id}`}>
+                    {t("View accepted quote", "ดูใบเสนอราคาที่อนุมัติ")}
+                  </Link>
+                </p> : null}
+              {invoice.source_milestone_id && invoice.project_id ? <p className="text-sm">
+                  {t("Delivery milestone: ", "เป้าหมายการส่งมอบ: ")}
+                  <Link className="underline" href={`/projects/${invoice.project_id}`}>
+                    {t("View project and milestones", "ดูโปรเจกต์และเป้าหมาย")}
+                  </Link>
+                </p> : null}
               {invoice.notes ? (
                 <>
                   <Separator className="my-4" />
-                  <Field label="Notes" value={invoice.notes} />
+                  <Field label={t("Notes", "หมายเหตุ")} value={invoice.notes} />
                 </>
               ) : null}
             </CardContent>
@@ -302,7 +331,7 @@ export default async function InvoiceDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Line items</CardTitle>
+              <CardTitle className="text-base">{t("Line items", "รายการ")}</CardTitle>
             </CardHeader>
             <CardContent>
               <InvoiceItemsEditor
@@ -317,31 +346,34 @@ export default async function InvoiceDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Payments</CardTitle>
+              <CardTitle className="text-base">{t("Payments", "การชำระเงิน")}</CardTitle>
             </CardHeader>
             <CardContent>
               {payments.length === 0 ? (
                 <EmptyState
                   icon={Wallet}
-                  title="No payments yet"
-                  description="Only verified receipts appear here. Report a payment in the queue before verification."
+                  title={t("No payments yet", "ยังไม่มีการชำระเงิน")}
+                  description={t(
+                    "Only verified receipts appear here. Report a payment in the queue before verification.",
+                    "แสดงเฉพาะยอดรับชำระที่ตรวจสอบแล้ว กรุณาแจ้งชำระในคิวก่อนการตรวจสอบ"
+                  )}
                   className="border-0"
                 />
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Notes</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>{t("Date", "วันที่")}</TableHead>
+                      <TableHead>{t("Method", "วิธีชำระ")}</TableHead>
+                      <TableHead>{t("Notes", "หมายเหตุ")}</TableHead>
+                      <TableHead className="text-right">{t("Amount", "จำนวนเงิน")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {payments.map((p) => (
                       <TableRow key={p.id}>
                         <TableCell>{p.paid_at}</TableCell>
-                        <TableCell>{PAYMENT_METHOD_LABEL[p.method]}</TableCell>
+                        <TableCell>{enumLabel(t, "payment_method", p.method)}</TableCell>
                         <TableCell className="text-muted-foreground">
                           {p.notes ?? "—"}
                         </TableCell>
@@ -360,16 +392,21 @@ export default async function InvoiceDetailPage({
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">ตรวจสอบการชำระ / Payment claims</CardTitle>
+              <CardTitle className="text-base">{t("Payment claims", "ตรวจสอบการชำระ")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">Customer reports await verification. Only verified receipts reduce the open balance.</p>
-              {claimsRes.error ? <p role="alert">Payment queue unavailable. Reload before approving.</p> : (claimsRes.data ?? []).map(claim => <div key={claim.id} className="space-y-2 border-b py-4">
-                <p>{formatTHB(claim.amount_satang)} · {claim.reference} · {claim.status}</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {t(
+                  "Customer reports await verification. Only verified receipts reduce the open balance.",
+                  "รายการแจ้งชำระจากลูกค้ารอการตรวจสอบ เฉพาะยอดที่ตรวจสอบแล้วจึงจะหักยอดค้างชำระ"
+                )}
+              </p>
+              {claimsRes.error ? <p role="alert">{t("Payment queue unavailable. Reload before approving.", "คิวการชำระใช้งานไม่ได้ กรุณาโหลดใหม่ก่อนอนุมัติ")}</p> : (claimsRes.data ?? []).map(claim => <div key={claim.id} className="space-y-2 border-b py-4">
+                <p>{formatTHB(claim.amount_satang)} · {claim.reference} · {claimStatusLabel(t, claim.status)}</p>
                 {claim.status === "pending" && ctx.role !== "member" ? <ReviewClaimForm today={today} orgId={ctx.orgId} claimId={claim.id} invoiceId={invoice.id} suggestedBaht={satangToBahtString(claim.amount_satang)} /> : null}
               </div>)}
-              {ctx.role !== "member" && outstanding > 0 && !["draft", "cancelled"].includes(invoice.status) && !(claimsRes.data ?? []).some(claim => claim.status === "pending") && !claimsRes.error ? <div className="border-t pt-4"><h3 className="mb-3 text-sm font-medium">แจ้งชำระโดยเจ้าหน้าที่ / Staff report</h3><PaymentForm today={today} orgId={ctx.orgId} invoiceId={invoice.id} suggestedBaht={satangToBahtString(outstanding)} /></div> : null}
-              {legacyRes.data?.length ? <div className="mt-6 space-y-4"><h3 className="text-sm font-medium">ตรวจสอบยอดเดิม / Legacy reconciliation</h3><p className="text-xs text-muted-foreground">Retained records are excluded from verified cash. Match each to bank evidence before creating a linked verified receipt.</p>{legacyRes.data.map(legacy => <div key={legacy.id} className="rounded border p-3 space-y-2"><p className="text-sm">{formatTHB(legacy.amount_satang)} · {legacy.paid_at.slice(0,10)} · {legacy.verification_state}</p><p className="text-xs text-muted-foreground">{legacy.notes ?? "No original reference"}</p>{legacy.reconciled_payment_id ? <p className="text-xs">Linked verified receipt: {legacy.reconciled_payment_id}</p> : null}{legacy.verification_state === "legacy_unverified" && ctx.role !== "member" && outstanding > 0 && !["draft", "cancelled"].includes(invoice.status) ? <PaymentForm today={today} orgId={ctx.orgId} invoiceId={invoice.id} legacyPaymentId={legacy.id} suggestedBaht={satangToBahtString(Math.min(legacy.amount_satang, outstanding))} /> : null}</div>)}</div> : null}
+              {ctx.role !== "member" && outstanding > 0 && !["draft", "cancelled"].includes(invoice.status) && !(claimsRes.data ?? []).some(claim => claim.status === "pending") && !claimsRes.error ? <div className="border-t pt-4"><h3 className="mb-3 text-sm font-medium">{t("Staff report", "แจ้งชำระโดยเจ้าหน้าที่")}</h3><PaymentForm today={today} orgId={ctx.orgId} invoiceId={invoice.id} suggestedBaht={satangToBahtString(outstanding)} /></div> : null}
+              {legacyRes.data?.length ? <div className="mt-6 space-y-4"><h3 className="text-sm font-medium">{t("Legacy reconciliation", "ตรวจสอบยอดเดิม")}</h3><p className="text-xs text-muted-foreground">{t("Retained records are excluded from verified cash. Match each to bank evidence before creating a linked verified receipt.", "รายการเดิมไม่นับรวมในเงินสดที่ตรวจสอบแล้ว กรุณาจับคู่กับหลักฐานธนาคารก่อนสร้างใบรับชำระที่ตรวจสอบแล้ว")}</p>{legacyRes.data.map(legacy => <div key={legacy.id} className="rounded border p-3 space-y-2"><p className="text-sm">{formatTHB(legacy.amount_satang)} · {legacy.paid_at.slice(0,10)} · {verificationLabel(t, legacy.verification_state)}</p><p className="text-xs text-muted-foreground">{legacy.notes ?? t("No original reference", "ไม่มีเลขอ้างอิงเดิม")}</p>{legacy.reconciled_payment_id ? <p className="text-xs">{t("Linked verified receipt: ", "ใบรับชำระที่ผูกไว้: ")}{legacy.reconciled_payment_id}</p> : null}{legacy.verification_state === "legacy_unverified" && ctx.role !== "member" && outstanding > 0 && !["draft", "cancelled"].includes(invoice.status) ? <PaymentForm today={today} orgId={ctx.orgId} invoiceId={invoice.id} legacyPaymentId={legacy.id} suggestedBaht={satangToBahtString(Math.min(legacy.amount_satang, outstanding))} /> : null}</div>)}</div> : null}
             </CardContent>
           </Card>
         </div>
@@ -377,14 +414,14 @@ export default async function InvoiceDetailPage({
 
       {ctx.role !== "member" && invoice.status === "draft" && !invoice.source_quote_id && !invoice.issued_snapshot_id && paid === 0 && !(claimsRes.data ?? []).some(claim => claim.status === "pending") ? <Card className="max-w-3xl">
         <CardHeader>
-          <CardTitle className="text-base">Edit invoice</CardTitle>
+          <CardTitle className="text-base">{t("Edit invoice", "แก้ไขใบแจ้งหนี้")}</CardTitle>
         </CardHeader>
         <CardContent>
           <InvoiceForm
             clients={clients}
             projects={projects}
             defaultValues={defaultValues}
-            submitLabel="Save changes"
+            submitLabel={t("Save changes", "บันทึกการเปลี่ยนแปลง")}
             action={saveInvoice}
           />
         </CardContent>

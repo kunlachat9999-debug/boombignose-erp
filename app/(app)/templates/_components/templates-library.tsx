@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { formatTHB } from "@/lib/money"
 import type { Tables } from "@/lib/types/database"
+import { useT } from "@/components/locale-provider"
 
 type Category = Pick<Tables<"template_categories">, "id" | "name" | "slug">
 
@@ -24,38 +25,39 @@ export type TemplateCard = {
 const ALL = "__all__"
 const UNCATEGORIZED = "__uncat__"
 
-function TemplateTile({ t }: { t: TemplateCard }) {
+function TemplateTile({ tpl }: { tpl: TemplateCard }) {
+  const t = useT()
   return (
-    <Link href={`/templates/${t.id}`} className="group/tile block h-full">
+    <Link href={`/templates/${tpl.id}`} className="group/tile block h-full">
       <Card className="h-full transition-colors group-hover/tile:ring-foreground/20">
         <CardHeader>
-          <CardTitle className="leading-snug">{t.name}</CardTitle>
-          {t.description ? (
+          <CardTitle className="leading-snug">{tpl.name}</CardTitle>
+          {tpl.description ? (
             <p className="text-muted-foreground line-clamp-2 text-sm">
-              {t.description}
+              {tpl.description}
             </p>
           ) : null}
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            {t.priceSatang != null ? (
+            {tpl.priceSatang != null ? (
               <div>
                 <span className="text-base font-semibold">
-                  {formatTHB(t.priceSatang)}
+                  {formatTHB(tpl.priceSatang)}
                 </span>
-                <span className="text-muted-foreground ml-1 text-xs">price</span>
+                <span className="text-muted-foreground ml-1 text-xs">{t("price", "ราคาขาย")}</span>
               </div>
             ) : null}
-            {t.internalValueSatang != null ? (
+            {tpl.internalValueSatang != null ? (
               <div className="text-muted-foreground text-sm">
-                {formatTHB(t.internalValueSatang)}
-                <span className="ml-1 text-xs">internal</span>
+                {formatTHB(tpl.internalValueSatang)}
+                <span className="ml-1 text-xs">{t("internal", "มูลค่าภายใน")}</span>
               </div>
             ) : null}
           </div>
-          {t.tags.length > 0 ? (
+          {tpl.tags.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
-              {t.tags.map((tag) => (
+              {tpl.tags.map((tag) => (
                 <Badge key={tag} variant="secondary">
                   {tag}
                 </Badge>
@@ -71,8 +73,8 @@ function TemplateTile({ t }: { t: TemplateCard }) {
 function Grid({ items }: { items: TemplateCard[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((t) => (
-        <TemplateTile key={t.id} t={t} />
+      {items.map((tpl) => (
+        <TemplateTile key={tpl.id} tpl={tpl} />
       ))}
     </div>
   )
@@ -85,9 +87,10 @@ export function TemplatesLibrary({
   categories: Category[]
   templates: TemplateCard[]
 }) {
+  const t = useT()
   const [active, setActive] = React.useState<string>(ALL)
 
-  const hasUncategorized = templates.some((t) => t.categoryId == null)
+  const hasUncategorized = templates.some((tpl) => tpl.categoryId == null)
 
   // Group templates by category id for the "All" view.
   const groups = React.useMemo(() => {
@@ -95,31 +98,31 @@ export function TemplatesLibrary({
       .map((c) => ({
         id: c.id,
         name: c.name,
-        items: templates.filter((t) => t.categoryId === c.id),
+        items: templates.filter((tpl) => tpl.categoryId === c.id),
       }))
       .filter((g) => g.items.length > 0)
   }, [categories, templates])
 
-  const uncategorized = templates.filter((t) => t.categoryId == null)
+  const uncategorized = templates.filter((tpl) => tpl.categoryId == null)
 
   const filtered =
     active === ALL
       ? templates
       : active === UNCATEGORIZED
         ? uncategorized
-        : templates.filter((t) => t.categoryId === active)
+        : templates.filter((tpl) => tpl.categoryId === active)
 
   return (
     <Tabs value={active} onValueChange={(v) => setActive(v as string)}>
       <TabsList className="flex h-auto flex-wrap">
-        <TabsTrigger value={ALL}>All</TabsTrigger>
+        <TabsTrigger value={ALL}>{t("All", "ทั้งหมด")}</TabsTrigger>
         {categories.map((c) => (
           <TabsTrigger key={c.id} value={c.id}>
             {c.name}
           </TabsTrigger>
         ))}
         {hasUncategorized ? (
-          <TabsTrigger value={UNCATEGORIZED}>Uncategorized</TabsTrigger>
+          <TabsTrigger value={UNCATEGORIZED}>{t("Uncategorized", "ไม่มีหมวดหมู่")}</TabsTrigger>
         ) : null}
       </TabsList>
 
@@ -136,7 +139,7 @@ export function TemplatesLibrary({
           {uncategorized.length > 0 ? (
             <section className="space-y-3">
               <h2 className="text-sm font-medium text-muted-foreground">
-                Uncategorized
+                {t("Uncategorized", "ไม่มีหมวดหมู่")}
               </h2>
               <Grid items={uncategorized} />
             </section>

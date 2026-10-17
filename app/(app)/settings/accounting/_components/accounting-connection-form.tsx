@@ -19,6 +19,8 @@ import {
   disconnectAccounting,
   type ConnectAccountingInput,
 } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 type ProviderKey = ConnectAccountingInput["provider"]
 
@@ -40,6 +42,7 @@ export function AccountingConnectionForm({
   connectedProvider: ProviderKey | null
 }) {
   const router = useRouter()
+  const t = useT()
   const [pending, startTransition] = useTransition()
   const [provider, setProvider] = useState<ProviderKey>(
     connectedProvider ?? "flowaccount"
@@ -51,7 +54,10 @@ export function AccountingConnectionForm({
     return (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-muted-foreground text-sm">
-          Disconnecting stops new invoice syncs. Existing sync records are kept.
+          {t(
+            "Disconnecting stops new invoice syncs. Existing sync records are kept.",
+            "การยกเลิกเชื่อมต่อจะหยุดการซิงก์ใบแจ้งหนี้ใหม่ ประวัติการซิงก์เดิมยังเก็บไว้"
+          )}
         </p>
         <Button
           variant="outline"
@@ -60,15 +66,15 @@ export function AccountingConnectionForm({
             startTransition(async () => {
               const res = await disconnectAccounting()
               if (res?.error) {
-                toast.error(res.error)
+                toast.error(translateMessage(t, res.error))
                 return
               }
-              toast.success("Accounting provider disconnected")
+              toast.success(t("Accounting provider disconnected", "ยกเลิกการเชื่อมต่อระบบบัญชีแล้ว"))
               router.refresh()
             })
           }
         >
-          <Unplug /> {pending ? "Disconnecting…" : "Disconnect"}
+          <Unplug /> {pending ? t("Disconnecting…", "กำลังยกเลิก…") : t("Disconnect", "ยกเลิกการเชื่อมต่อ")}
         </Button>
       </div>
     )
@@ -78,16 +84,17 @@ export function AccountingConnectionForm({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
       <div className="space-y-1.5">
         <label className="text-sm font-medium" htmlFor="provider">
-          Provider
+          {t("Provider", "ผู้ให้บริการ")}
         </label>
         <Select
+          items={PROVIDER_OPTIONS}
           value={provider}
           onValueChange={(v: string | null) =>
             setProvider((v as ProviderKey) ?? "flowaccount")
           }
         >
           <SelectTrigger id="provider" className="w-full sm:w-56">
-            <SelectValue placeholder="Select a provider" />
+            <SelectValue placeholder={t("Select a provider", "เลือกผู้ให้บริการ")} />
           </SelectTrigger>
           <SelectContent>
             {PROVIDER_OPTIONS.map((o) => (
@@ -104,15 +111,15 @@ export function AccountingConnectionForm({
           startTransition(async () => {
             const res = await connectAccounting({ provider })
             if (res?.error) {
-              toast.error(res.error)
+              toast.error(translateMessage(t, res.error))
               return
             }
-            toast.success("Accounting provider connected")
+            toast.success(t("Accounting provider connected", "เชื่อมต่อระบบบัญชีแล้ว"))
             router.refresh()
           })
         }
       >
-        <Plug /> {pending ? "Connecting…" : "Connect"}
+        <Plug /> {pending ? t("Connecting…", "กำลังเชื่อมต่อ…") : t("Connect", "เชื่อมต่อ")}
       </Button>
     </div>
   )

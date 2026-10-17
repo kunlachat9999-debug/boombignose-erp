@@ -15,11 +15,13 @@ import {
   type SubscriptionFormValues,
 } from "../../_components/subscription-form"
 import type { Option } from "../../_components/form-fields"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
 export default async function NewSubscriptionPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const [clientsRes, projectsRes] = await Promise.all([
@@ -49,11 +51,11 @@ export default async function NewSubscriptionPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="New subscription"
-        description="Bill a client automatically on a recurring schedule."
+        title={t("New subscription", "เพิ่มรายการสมัครสมาชิก")}
+        description={t("Bill a client automatically on a recurring schedule.", "เรียกเก็บเงินลูกค้าอัตโนมัติตามรอบ")}
       >
         <Button variant="outline" render={<Link href="/finance/subscriptions" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -63,7 +65,7 @@ export default async function NewSubscriptionPage() {
             clients={clients}
             projects={projects}
             defaultValues={defaultValues}
-            submitLabel="Create subscription"
+            submitLabel={t("Create subscription", "สร้างรายการสมัครสมาชิก")}
             action={createSubscription}
           />
         </CardContent>

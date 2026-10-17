@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { Enums } from "@/lib/types/database"
 import { deadlineMeta } from "./_lib/dates"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -38,6 +39,7 @@ const STATUS_ORDER: { value: ProjectStatus; label: string }[] = [
 
 export default async function ProjectsPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const { data: projects } = await supabase
@@ -58,15 +60,18 @@ export default async function ProjectsPage() {
 
   const newButton = (
     <Button render={<Link href="/projects/new" />}>
-      <Plus data-icon="inline-start" /> New project
+      <Plus data-icon="inline-start" /> {t("New project", "สร้างโปรเจกต์")}
     </Button>
   )
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Projects"
-        description="Delivery work across every client, grouped by status."
+        title={t("Projects", "โปรเจกต์")}
+        description={t(
+          "Delivery work across every client, grouped by status.",
+          "งานส่งมอบของลูกค้าทุกราย จัดกลุ่มตามสถานะ"
+        )}
       >
         {newButton}
       </PageHeader>
@@ -74,8 +79,11 @@ export default async function ProjectsPage() {
       {rows.length === 0 ? (
         <EmptyState
           icon={Briefcase}
-          title="No projects yet"
-          description="Create your first project to start tracking delivery, tasks, and milestones."
+          title={t("No projects yet", "ยังไม่มีโปรเจกต์")}
+          description={t(
+            "Create your first project to start tracking delivery, tasks, and milestones.",
+            "สร้างโปรเจกต์แรกเพื่อเริ่มติดตามงานส่งมอบ งานย่อย และเป้าหมาย"
+          )}
           action={newButton}
         />
       ) : (
@@ -97,15 +105,15 @@ export default async function ProjectsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Project</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Deadline</TableHead>
-                        <TableHead>Owner</TableHead>
+                        <TableHead>{t("Project", "โปรเจกต์")}</TableHead>
+                        <TableHead>{t("Client", "ลูกค้า")}</TableHead>
+                        <TableHead>{t("Deadline", "กำหนดส่ง")}</TableHead>
+                        <TableHead>{t("Owner", "ผู้รับผิดชอบ")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {groupRows.map((p) => {
-                        const dl = deadlineMeta(p.deadline)
+                        const dl = deadlineMeta(t, p.deadline)
                         return (
                           <TableRow key={p.id} className="cursor-pointer">
                             <TableCell className="font-medium">

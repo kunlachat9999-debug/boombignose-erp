@@ -27,6 +27,8 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 /** A display-ready line-item row (money already formatted by the RSC page). */
 export type InvoiceItemRow = {
@@ -65,6 +67,7 @@ export function InvoiceItemsEditor({
   locked?: boolean
 }) {
   const router = useRouter()
+  const t = useT()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const form = useForm<z.input<typeof Schema>, unknown, Values>({
     resolver: zodResolver(Schema),
@@ -80,10 +83,10 @@ export function InvoiceItemsEditor({
     const res = await deleteAction({ id })
     setDeletingId(null)
     if (res?.error) {
-      toast.error(res.error)
+      toast.error(translateMessage(t, res.error))
       return
     }
-    toast.success("Line item removed")
+    toast.success(t("Line item removed", "ลบรายการแล้ว"))
     router.refresh()
   }
 
@@ -93,10 +96,10 @@ export function InvoiceItemsEditor({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Qty</TableHead>
-              <TableHead className="text-right">Unit price</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>{t("Description", "รายละเอียด")}</TableHead>
+              <TableHead className="text-right">{t("Qty", "จำนวน")}</TableHead>
+              <TableHead className="text-right">{t("Unit price", "ราคาต่อหน่วย")}</TableHead>
+              <TableHead className="text-right">{t("Amount", "จำนวนเงิน")}</TableHead>
               {locked ? null : <TableHead className="w-10" />}
             </TableRow>
           </TableHeader>
@@ -119,7 +122,7 @@ export function InvoiceItemsEditor({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label="Delete line item"
+                      aria-label={t("Delete line item", "ลบรายการ")}
                       disabled={deletingId === item.id}
                       onClick={() => onDelete(item.id)}
                     >
@@ -134,23 +137,26 @@ export function InvoiceItemsEditor({
       ) : (
         <p className="text-muted-foreground text-sm">
           {locked
-            ? "No line items."
-            : "No line items yet. Add one below to itemize this invoice — the invoice total is then derived from the items."}
+            ? t("No line items.", "ไม่มีรายการ")
+            : t(
+                "No line items yet. Add one below to itemize this invoice — the invoice total is then derived from the items.",
+                "ยังไม่มีรายการ เพิ่มรายการด้านล่างเพื่อแจกแจงใบแจ้งหนี้ — ยอดรวมจะคำนวณจากรายการ"
+              )}
         </p>
       )}
 
       {locked ? (
-        <p className="text-muted-foreground text-sm">Locked (paid)</p>
+        <p className="text-muted-foreground text-sm">{t("Locked (paid)", "ถูกล็อก (ชำระแล้ว)")}</p>
       ) : (
         <Form {...form}>
         <form
           onSubmit={form.handleSubmit(async (values) => {
             const res = await addAction({ invoice_id: invoiceId, ...values })
             if (res?.error) {
-              toast.error(res.error)
+              toast.error(translateMessage(t, res.error))
               return
             }
-            toast.success("Line item added")
+            toast.success(t("Line item added", "เพิ่มรายการแล้ว"))
             form.reset({ description: "", quantity: "1", unitPriceBaht: "0.00" })
             router.refresh()
           })}
@@ -161,9 +167,9 @@ export function InvoiceItemsEditor({
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t("Description", "รายละเอียด")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Design work" {...field} />
+                  <Input placeholder={t("e.g. Design work", "เช่น งานออกแบบ")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -174,7 +180,7 @@ export function InvoiceItemsEditor({
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Qty</FormLabel>
+                <FormLabel>{t("Qty", "จำนวน")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -198,7 +204,7 @@ export function InvoiceItemsEditor({
             name="unitPriceBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Unit price (฿)</FormLabel>
+                <FormLabel>{t("Unit price (฿)", "ราคาต่อหน่วย (฿)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -219,7 +225,7 @@ export function InvoiceItemsEditor({
           />
           <div className="flex flex-col justify-end sm:pt-[1.625rem]">
             <Button type="submit" disabled={form.formState.isSubmitting}>
-              Add item
+              {t("Add item", "เพิ่มรายการ")}
             </Button>
           </div>
         </form>

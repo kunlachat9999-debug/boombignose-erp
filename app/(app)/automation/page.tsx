@@ -24,6 +24,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Enums } from "@/lib/types/database"
+import type { T } from "@/lib/i18n"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -38,18 +40,18 @@ function formatTimestamp(iso: string): string {
   return formatInTimeZone(iso, APP_TZ, "d MMM, HH:mm")
 }
 
-function EventStatusBadge({ status }: { status: Enums<"outbound_status"> }) {
+function EventStatusBadge({ t, status }: { t: T; status: Enums<"outbound_status"> }) {
   const map: Record<Enums<"outbound_status">, { label: string; className: string }> = {
     queued: {
-      label: "Queued",
+      label: t("Queued", "อยู่ในคิว"),
       className: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300",
     },
     delivered: {
-      label: "Delivered",
+      label: t("Delivered", "ส่งแล้ว"),
       className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
     },
     failed: {
-      label: "Failed",
+      label: t("Failed", "ล้มเหลว"),
       className: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
     },
   }
@@ -63,6 +65,7 @@ function EventStatusBadge({ status }: { status: Enums<"outbound_status"> }) {
 
 export default async function AutomationPage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const today = todayISO()
 
@@ -88,31 +91,37 @@ export default async function AutomationPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Automation"
-        description="Follow-up reminders the cron scan raised, and the outbound events queued for n8n / Hermes."
+        title={t("Automation", "ระบบอัตโนมัติ")}
+        description={t(
+          "Follow-up reminders the cron scan raised, and the outbound events queued for n8n / Hermes.",
+          "การแจ้งเตือนติดตามผลจากการสแกนตามรอบ และเหตุการณ์ที่รอส่งไปยัง n8n / Hermes"
+        )}
       />
 
       {bothEmpty ? (
         <EmptyState
           icon={Workflow}
-          title="No automation activity yet"
-          description="Due follow-ups appear after a scheduled scan. Delivery activity and failures appear here for review."
+          title={t("No automation activity yet", "ยังไม่มีกิจกรรมอัตโนมัติ")}
+          description={t(
+            "Due follow-ups appear after a scheduled scan. Delivery activity and failures appear here for review.",
+            "งานติดตามที่ครบกำหนดจะแสดงหลังการสแกนตามรอบ ผลการส่งและข้อผิดพลาดจะแสดงที่นี่"
+          )}
         />
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Pending reminders</CardTitle>
+              <CardTitle className="text-base">{t("Pending reminders", "การแจ้งเตือนที่รอส่ง")}</CardTitle>
               <CardDescription>
-                Due or overdue follow-ups awaiting a send. Soonest first.
+                {t("Due or overdue follow-ups awaiting a send. Soonest first.", "งานติดตามที่ครบหรือเลยกำหนดและรอส่ง เรียงจากใกล้สุด")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {pendingReminders.length === 0 ? (
                 <EmptyState
                   icon={Bell}
-                  title="No pending reminders"
-                  description="Everything is followed up. New ones appear after the next scan."
+                  title={t("No pending reminders", "ไม่มีการแจ้งเตือนที่รอส่ง")}
+                  description={t("Everything is followed up. New ones appear after the next scan.", "ติดตามครบแล้ว รายการใหม่จะแสดงหลังการสแกนครั้งถัดไป")}
                   className="border-0 p-6"
                 />
               ) : (
@@ -145,14 +154,14 @@ export default async function AutomationPage() {
                             className="shrink-0 border-transparent bg-red-100 font-medium text-red-800 dark:bg-red-950 dark:text-red-300"
                           >
                             <AlertTriangle className="mr-1 size-3" aria-hidden />
-                            Overdue
+                            {t("Overdue", "เลยกำหนด")}
                           </Badge>
                         ) : (
                           <Badge
                             variant="outline"
                             className="shrink-0 border-transparent bg-amber-100 font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-300"
                           >
-                            Due today
+                            {t("Due today", "ครบกำหนดวันนี้")}
                           </Badge>
                         )}
                       </li>
@@ -165,27 +174,27 @@ export default async function AutomationPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Outbound events</CardTitle>
+              <CardTitle className="text-base">{t("Outbound events", "เหตุการณ์ขาออก")}</CardTitle>
               <CardDescription>
-                The queue n8n / Hermes consumes. Most recent first.
+                {t("The queue n8n / Hermes consumes. Most recent first.", "คิวที่ n8n / Hermes ดึงไปใช้ เรียงจากล่าสุด")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {recentEvents.length === 0 ? (
                 <EmptyState
                   icon={CheckCircle2}
-                  title="No outbound events"
-                  description="Events are queued here when reminders are created."
+                  title={t("No outbound events", "ไม่มีเหตุการณ์ขาออก")}
+                  description={t("Events are queued here when reminders are created.", "เหตุการณ์จะเข้าคิวที่นี่เมื่อมีการสร้างการแจ้งเตือน")}
                   className="border-0 p-6"
                 />
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Event</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Attempts</TableHead>
-                      <TableHead className="text-right">Queued</TableHead>
+                      <TableHead>{t("Event", "เหตุการณ์")}</TableHead>
+                      <TableHead>{t("Status", "สถานะ")}</TableHead>
+                      <TableHead className="text-right">{t("Attempts", "จำนวนครั้งที่ลอง")}</TableHead>
+                      <TableHead className="text-right">{t("Queued", "เข้าคิวเมื่อ")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -195,7 +204,7 @@ export default async function AutomationPage() {
                           {event.event_type}
                         </TableCell>
                         <TableCell>
-                          <EventStatusBadge status={event.status} />
+                          <EventStatusBadge t={t} status={event.status} />
                         </TableCell>
                         <TableCell className="text-right text-xs">{event.attempts}</TableCell>
                         <TableCell className="text-muted-foreground text-right text-xs">

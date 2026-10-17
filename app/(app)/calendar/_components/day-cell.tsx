@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 import type { CalendarDay } from "@/lib/calendar/month"
 import type { CalendarItem } from "../types"
+import { useT } from "@/components/locale-provider"
 
 const DOT: Record<CalendarItem["tone"], string> = {
   amber: "bg-amber-500",
@@ -45,6 +48,7 @@ export function DayCell({
   items: CalendarItem[]
   isToday: boolean
 }) {
+  const t = useT()
   const MAX = 3
   const shown = items.slice(0, MAX)
   const overflow = items.length - shown.length
@@ -74,7 +78,7 @@ export function DayCell({
         ))}
         {overflow > 0 ? (
           <span className="text-muted-foreground px-1 text-[11px]">
-            +{overflow} more
+            {t(`+${overflow} more`, `+อีก ${overflow}`)}
           </span>
         ) : null}
       </div>

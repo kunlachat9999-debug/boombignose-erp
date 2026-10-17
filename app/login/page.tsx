@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { LocaleToggle, useT } from "@/components/locale-provider"
 
 // Local-dev convenience, off by default: the demo button renders only when both
 // vars are set at build time. Never set them for a real deployment.
@@ -28,6 +29,7 @@ function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const redirectTo = safeReturnPath(params.get("redirect"))
+  const t = useT()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -39,7 +41,7 @@ function LoginForm() {
     const { error } = await supabase.auth.signInWithPassword({ email: em, password: pw })
     setLoading(false)
     if (error) {
-      toast.error("Sign in failed", { description: error.message })
+      toast.error(t("Sign in failed", "เข้าสู่ระบบไม่สำเร็จ"), { description: error.message })
       return
     }
     router.push(redirectTo)
@@ -50,8 +52,11 @@ function LoginForm() {
     <div className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-xl">BoomBigNose Company OS</CardTitle>
-          <CardDescription>Sign in to your workspace.</CardDescription>
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-xl">BoomBigNose Company OS</CardTitle>
+            <LocaleToggle />
+          </div>
+          <CardDescription>{t("Sign in to your workspace.", "เข้าสู่ระบบพื้นที่ทำงานของคุณ")}</CardDescription>
           {params.get("error") ? <p role="alert" className="text-destructive text-sm">{params.get("error")}</p> : null}
         </CardHeader>
         <form
@@ -62,7 +67,7 @@ function LoginForm() {
         >
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("Email", "อีเมล")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -74,7 +79,7 @@ function LoginForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("Password", "รหัสผ่าน")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -87,7 +92,7 @@ function LoginForm() {
           </CardContent>
           <CardFooter className="mt-2 flex-col gap-3">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="size-4 animate-spin" /> : "Sign in"}
+              {loading ? <Loader2 className="size-4 animate-spin" /> : t("Sign in", "เข้าสู่ระบบ")}
             </Button>
             {DEMO_EMAIL && DEMO_PASSWORD ? (
               <Button
@@ -97,7 +102,7 @@ function LoginForm() {
                 disabled={loading}
                 onClick={() => void signIn(DEMO_EMAIL, DEMO_PASSWORD)}
               >
-                Use demo account
+                {t("Use demo account", "ใช้บัญชีทดลอง")}
               </Button>
             ) : null}
           </CardFooter>

@@ -13,6 +13,7 @@ import {
   type TemplateFormDefaults,
 } from "../../_components/template-form"
 import { updateTemplate } from "../../actions"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -28,6 +29,7 @@ export default async function EditTemplatePage({
 }) {
   const { id } = await params
   await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const [{ data: template }, { data: categories }] = await Promise.all([
@@ -68,9 +70,9 @@ export default async function EditTemplatePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Edit template" description={template.name}>
+      <PageHeader title={t("Edit template", "แก้ไขเทมเพลต")} description={template.name}>
         <Button variant="outline" render={<Link href={`/templates/${id}`} />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -80,7 +82,7 @@ export default async function EditTemplatePage({
             categories={categories ?? []}
             defaults={defaults}
             action={action}
-            submitLabel="Save changes"
+            submitLabel={t("Save changes", "บันทึกการเปลี่ยนแปลง")}
           />
         </CardContent>
       </Card>

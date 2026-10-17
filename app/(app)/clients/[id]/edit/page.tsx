@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ClientForm } from "../../_components/client-form"
 import { updateClient } from "../../actions"
+import { getT } from "@/lib/i18n-server"
 
 export default async function EditClientPage({
   params,
@@ -17,6 +18,7 @@ export default async function EditClientPage({
 }) {
   const { id } = await params
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
   const { data: client } = await supabase
     .from("clients")
@@ -33,8 +35,8 @@ export default async function EditClientPage({
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6">
       <PageHeader
-        title="Edit client"
-        description={`Update ${client.name}'s details.`}
+        title={t("Edit client", "แก้ไขลูกค้า")}
+        description={t(`Update ${client.name}'s details.`, `แก้ไขข้อมูลของ ${client.name}`)}
       >
         <Button
           variant="ghost"
@@ -42,7 +44,7 @@ export default async function EditClientPage({
           render={<Link href={`/clients/${client.id}`} />}
         >
           <ArrowLeft />
-          Back
+          {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -50,7 +52,7 @@ export default async function EditClientPage({
         <CardContent>
           <ClientForm
             action={updateAction}
-            submitLabel="Save changes"
+            submitLabel={t("Save changes", "บันทึกการเปลี่ยนแปลง")}
             defaultValues={{
               name: client.name,
               industry: client.industry ?? "",

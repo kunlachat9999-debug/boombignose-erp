@@ -22,13 +22,10 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 
 import { SelectField, type Option } from "./form-fields"
-
-const INTERVAL_OPTIONS: Option[] = [
-  { value: "weekly", label: "Weekly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly" },
-  { value: "yearly", label: "Yearly" },
-]
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
+import { Constants } from "@/lib/types/database"
 
 const Schema = z
   .object({
@@ -89,6 +86,11 @@ export function InvoiceForm({
   action: (values: Values) => Promise<{ error?: string } | void>
 }) {
   const router = useRouter()
+  const t = useT()
+  const intervalOptions: Option[] = Constants.public.Enums.recurring_interval.map((v) => ({
+    value: v,
+    label: enumLabel(t, "recurring_interval", v),
+  }))
   const form = useForm<z.input<typeof Schema>, unknown, Values>({
     resolver: zodResolver(Schema),
     defaultValues,
@@ -109,11 +111,11 @@ export function InvoiceForm({
           }
           const res = await action(payload)
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
           // createInvoice redirects on success (no return); update returns {}.
-          toast.success("Invoice saved")
+          toast.success(t("Invoice saved", "บันทึกใบแจ้งหนี้แล้ว"))
           router.refresh()
         })}
         className="space-y-5"
@@ -121,18 +123,18 @@ export function InvoiceForm({
         <div className="grid gap-5 sm:grid-cols-2">
           <SelectField
             name="client_id"
-            label="Client"
-            placeholder="Select a client"
+            label={t("Client", "ลูกค้า")}
+            placeholder={t("Select a client", "เลือกลูกค้า")}
             options={clients}
           />
           <SelectField
             name="project_id"
-            label="Project"
-            placeholder="No project"
+            label={t("Project", "โปรเจกต์")}
+            placeholder={t("No project", "ไม่ระบุโปรเจกต์")}
             options={projects}
             optional
-            noneLabel="No project"
-            description="Optional — link to a project."
+            noneLabel={t("No project", "ไม่ระบุโปรเจกต์")}
+            description={t("Optional — link to a project.", "ไม่บังคับ — ผูกกับโปรเจกต์")}
           />
         </div>
 
@@ -142,18 +144,18 @@ export function InvoiceForm({
             name="number"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Invoice number</FormLabel>
+                <FormLabel>{t("Invoice number", "เลขที่ใบแจ้งหนี้")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Auto (INV-2026-00X)" {...field} />
+                  <Input placeholder={t("Auto (INV-2026-00X)", "อัตโนมัติ (INV-2026-00X)")} {...field} />
                 </FormControl>
                 <FormDescription>
-                  Leave blank to auto-number.
+                  {t("Leave blank to auto-number.", "เว้นว่างไว้เพื่อให้ระบบรันเลขให้")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <FormField control={form.control} name="status" render={({ field }) => <FormItem><FormLabel>Status</FormLabel><FormControl><Input {...field} readOnly /></FormControl><FormDescription>Payment status is derived from verified receipts. Use the issue action to issue a draft.</FormDescription></FormItem>} />
+          <FormField control={form.control} name="status" render={({ field }) => <FormItem><FormLabel>{t("Status", "สถานะ")}</FormLabel><FormControl><Input name={field.name} ref={field.ref} value={enumLabel(t, "invoice_status", field.value)} readOnly /></FormControl><FormDescription>{t("Payment status is derived from verified receipts. Use the issue action to issue a draft.", "สถานะการชำระคำนวณจากยอดรับชำระที่ตรวจสอบแล้ว ใช้ปุ่มออกใบแจ้งหนี้เพื่อออกฉบับร่าง")}</FormDescription></FormItem>} />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-3">
@@ -162,7 +164,7 @@ export function InvoiceForm({
             name="issue_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Issue date</FormLabel>
+                <FormLabel>{t("Issue date", "วันที่ออก")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -175,7 +177,7 @@ export function InvoiceForm({
             name="due_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Due date</FormLabel>
+                <FormLabel>{t("Due date", "วันครบกำหนด")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -188,7 +190,7 @@ export function InvoiceForm({
             name="amountBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount (฿)</FormLabel>
+                <FormLabel>{t("Amount (฿)", "จำนวนเงิน (฿)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -202,7 +204,7 @@ export function InvoiceForm({
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <FormDescription>Entered in baht.</FormDescription>
+                <FormDescription>{t("Entered in baht.", "กรอกเป็นบาท")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -215,9 +217,9 @@ export function InvoiceForm({
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel>Recurring invoice</FormLabel>
+                <FormLabel>{t("Recurring invoice", "ใบแจ้งหนี้ประจำ")}</FormLabel>
                 <FormDescription>
-                  Bills the client on a repeating schedule.
+                  {t("Bills the client on a repeating schedule.", "เรียกเก็บเงินลูกค้าตามรอบที่กำหนด")}
                 </FormDescription>
               </div>
               <FormControl>
@@ -233,9 +235,9 @@ export function InvoiceForm({
         {isRecurring ? (
           <SelectField
             name="recurring_interval"
-            label="Recurring interval"
-            placeholder="Select interval"
-            options={INTERVAL_OPTIONS}
+            label={t("Recurring interval", "รอบการออก")}
+            placeholder={t("Select interval", "เลือกรอบ")}
+            options={intervalOptions}
           />
         ) : null}
 
@@ -244,10 +246,10 @@ export function InvoiceForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>{t("Notes", "หมายเหตุ")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Anything worth remembering about this invoice…"
+                  placeholder={t("Anything worth remembering about this invoice…", "สิ่งที่ควรจำเกี่ยวกับใบแจ้งหนี้นี้…")}
                   {...field}
                 />
               </FormControl>

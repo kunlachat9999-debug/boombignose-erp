@@ -30,6 +30,8 @@ export interface OfficeCtx {
   simSpeed: number
   register(id: string, root: THREE.Object3D, ring: number, focus: number): void
   onZoneClick(id: string): void
+  /** Display translation for in-canvas labels. */
+  tr: (s: string) => string
 }
 
 const FLOOR = 0.32
@@ -122,7 +124,7 @@ export function buildOffice(ctx: OfficeCtx) {
     f.castShadow = false
     zoneFloors.set(z.id, f)
     ctx.register(z.id, f, 0, 42)
-    const tag = chip(`<b class="text-slate-900">${z.name}</b> <span data-s class="text-slate-500"></span>`)
+    const tag = chip(`<b class="text-slate-900">${ctx.tr(z.name)}</b> <span data-s class="text-slate-500"></span>`)
     tag.el.style.pointerEvents = "auto"
     tag.el.style.cursor = "pointer"
     tag.el.addEventListener("click", () => ctx.onZoneClick(z.id))
@@ -130,7 +132,7 @@ export function buildOffice(ctx: OfficeCtx) {
     g.add(tag.obj)
     zoneTags.set(z.id, tag.el.querySelector<HTMLElement>("[data-s]")!)
   }
-  const hq = chip(`<b class="text-blue-700">BoomBigNose HQ</b> Entrance`)
+  const hq = chip(`<b class="text-blue-700">BoomBigNose HQ</b> ${ctx.tr("Entrance")}`)
   hq.obj.position.set(42, 3.4, CORR)
   g.add(hq.obj)
 
@@ -561,7 +563,7 @@ export function buildOffice(ctx: OfficeCtx) {
 
   const floaters: { obj: CSS2DObject; el: HTMLElement; t: number }[] = []
   function floatChip(text: string, x: number, z: number) {
-    const c = chip(`<span class="font-semibold text-white">${text}</span>`, "bg-emerald-500 px-2 py-0.5 text-[11px]")
+    const c = chip(`<span class="font-semibold text-white">${ctx.tr(text)}</span>`, "bg-emerald-500 px-2 py-0.5 text-[11px]")
     c.obj.position.set(x, 3, z)
     g.add(c.obj)
     floaters.push({ ...c, t: 0 })
@@ -713,7 +715,7 @@ export function buildOffice(ctx: OfficeCtx) {
     tagT += dt
     if (tagT > 0.5) {
       tagT = 0
-      for (const z of ZONES) zoneTags.get(z.id)!.textContent = shortStatus(z.id)
+      for (const z of ZONES) zoneTags.get(z.id)!.textContent = ctx.tr(shortStatus(z.id))
     }
     nextMeetingAt = meetingTitle ? 0 : sim + meetingTimer * ctx.simSpeed
   }

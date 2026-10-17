@@ -24,17 +24,10 @@ import {
   SavedViewsMenu,
   type SavedView,
 } from "@/app/(app)/views/saved-views-menu"
+import { useT } from "@/components/locale-provider"
+import { enumLabel } from "@/lib/enum-labels"
+import { Constants } from "@/lib/types/database"
 
-const STAGE_OPTIONS: { value: string; label: string }[] = [
-  { value: "all", label: "All stages" },
-  { value: "lead", label: "Lead" },
-  { value: "contacted", label: "Contacted" },
-  { value: "discovery", label: "Discovery" },
-  { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-]
 
 /**
  * URL-driven filter bar for the Deals board. Stage + title search write to the
@@ -51,6 +44,14 @@ export function DealsToolbar({
   savedViews: SavedView[]
 }) {
   const router = useRouter()
+  const t = useT()
+  const stageOptions = [
+    { value: "all", label: t("All stages", "ทุกขั้นตอน") },
+    ...Constants.public.Enums.deal_stage.map((s) => ({
+      value: s,
+      label: enumLabel(t, "deal_stage", s),
+    })),
+  ]
   const pathname = usePathname()
   const [search, setSearch] = useState(q)
 
@@ -86,7 +87,7 @@ export function DealsToolbar({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select
-        items={STAGE_OPTIONS}
+        items={stageOptions}
         value={stage || "all"}
         onValueChange={(v) => onStageChange(String(v))}
       >
@@ -94,7 +95,7 @@ export function DealsToolbar({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {STAGE_OPTIONS.map((opt) => (
+          {stageOptions.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
             </SelectItem>
@@ -106,7 +107,7 @@ export function DealsToolbar({
         <Search className="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2" />
         <Input
           value={search}
-          placeholder="Search deals…"
+          placeholder={t("Search deals…", "ค้นหาดีล…")}
           className="h-7 pl-8 text-sm"
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => {
@@ -126,7 +127,7 @@ export function DealsToolbar({
           render={<Link href={pathname} />}
         >
           <X />
-          Clear
+          {t("Clear", "ล้าง")}
         </Button>
       ) : null}
 
@@ -139,7 +140,7 @@ export function DealsToolbar({
         <SaveViewButton module="deals" config={config} />
         <Button variant="outline" size="sm" render={<Link href={exportHref} />}>
           <Download />
-          Export CSV
+          {t("Export CSV", "ส่งออก CSV")}
         </Button>
       </div>
     </div>

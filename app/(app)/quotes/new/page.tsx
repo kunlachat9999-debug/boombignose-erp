@@ -12,11 +12,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { createQuote } from "../actions"
 import { QuoteForm, type QuoteFormValues } from "../_components/quote-form"
 import type { Option } from "../_components/form-fields"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
 export default async function NewQuotePage() {
   const ctx = await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const [clientsRes, projectsRes] = await Promise.all([
@@ -46,11 +48,14 @@ export default async function NewQuotePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="New quote"
-        description="Draft a proposal — add line items after creating it."
+        title={t("New quote", "สร้างใบเสนอราคา")}
+        description={t(
+          "Draft a proposal — add line items after creating it.",
+          "ร่างใบเสนอราคา — เพิ่มรายการได้หลังสร้างแล้ว"
+        )}
       >
         <Button variant="outline" render={<Link href="/quotes" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
       </PageHeader>
 
@@ -60,7 +65,7 @@ export default async function NewQuotePage() {
             clients={clients}
             projects={projects}
             defaultValues={defaultValues}
-            submitLabel="Create quote"
+            submitLabel={t("Create quote", "สร้างใบเสนอราคา")}
             action={createQuote}
           />
         </CardContent>

@@ -20,13 +20,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 
 import { SelectField, type Option } from "./form-fields"
-
-const INTERVAL_OPTIONS: Option[] = [
-  { value: "weekly", label: "Weekly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "quarterly", label: "Quarterly" },
-  { value: "yearly", label: "Yearly" },
-]
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
+import { enumLabel } from "@/lib/enum-labels"
+import { Constants } from "@/lib/types/database"
 
 const Schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -65,6 +62,11 @@ export function SubscriptionForm({
   action: (values: Values) => Promise<{ error?: string } | void>
 }) {
   const router = useRouter()
+  const t = useT()
+  const intervalOptions: Option[] = Constants.public.Enums.recurring_interval.map((v) => ({
+    value: v,
+    label: enumLabel(t, "recurring_interval", v),
+  }))
   const form = useForm<z.input<typeof Schema>, unknown, Values>({
     resolver: zodResolver(Schema),
     defaultValues,
@@ -76,11 +78,11 @@ export function SubscriptionForm({
         onSubmit={form.handleSubmit(async (values) => {
           const res = await action(values)
           if (res?.error) {
-            toast.error(res.error)
+            toast.error(translateMessage(t, res.error))
             return
           }
           // createSubscription redirects on success (no return); update returns {}.
-          toast.success("Subscription saved")
+          toast.success(t("Subscription saved", "บันทึกรายการสมัครสมาชิกแล้ว"))
           router.refresh()
         })}
         className="space-y-5"
@@ -90,12 +92,12 @@ export function SubscriptionForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>{t("Name", "ชื่อ")}</FormLabel>
               <FormControl>
-                <Input placeholder="Acme monthly retainer" {...field} />
+                <Input placeholder={t("Acme monthly retainer", "ค่าบริการรายเดือน บริษัท ตัวอย่าง")} {...field} />
               </FormControl>
               <FormDescription>
-                Shown on generated invoices as the number prefix.
+                {t("Shown on generated invoices as the number prefix.", "แสดงเป็นคำนำหน้าเลขที่ในใบแจ้งหนี้ที่สร้าง")}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -105,18 +107,18 @@ export function SubscriptionForm({
         <div className="grid gap-5 sm:grid-cols-2">
           <SelectField
             name="client_id"
-            label="Client"
-            placeholder="Select a client"
+            label={t("Client", "ลูกค้า")}
+            placeholder={t("Select a client", "เลือกลูกค้า")}
             options={clients}
           />
           <SelectField
             name="project_id"
-            label="Project"
-            placeholder="No project"
+            label={t("Project", "โปรเจกต์")}
+            placeholder={t("No project", "ไม่ระบุโปรเจกต์")}
             options={projects}
             optional
-            noneLabel="No project"
-            description="Optional — link to a project."
+            noneLabel={t("No project", "ไม่ระบุโปรเจกต์")}
+            description={t("Optional — link to a project.", "ไม่บังคับ — ผูกกับโปรเจกต์")}
           />
         </div>
 
@@ -126,7 +128,7 @@ export function SubscriptionForm({
             name="amountBaht"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount (฿)</FormLabel>
+                <FormLabel>{t("Amount (฿)", "จำนวนเงิน (฿)")}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -140,27 +142,27 @@ export function SubscriptionForm({
                     onChange={field.onChange}
                   />
                 </FormControl>
-                <FormDescription>Billed each interval.</FormDescription>
+                <FormDescription>{t("Billed each interval.", "เรียกเก็บทุกรอบ")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           <SelectField
             name="interval"
-            label="Interval"
-            placeholder="Select interval"
-            options={INTERVAL_OPTIONS}
+            label={t("Interval", "รอบ")}
+            placeholder={t("Select interval", "เลือกรอบ")}
+            options={intervalOptions}
           />
           <FormField
             control={form.control}
             name="start_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Start date</FormLabel>
+                <FormLabel>{t("Start date", "วันที่เริ่ม")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
-                <FormDescription>First run date.</FormDescription>
+                <FormDescription>{t("First run date.", "วันที่เริ่มรอบแรก")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -172,10 +174,10 @@ export function SubscriptionForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel>{t("Notes", "หมายเหตุ")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Anything worth remembering about this subscription…"
+                  placeholder={t("Anything worth remembering about this subscription…", "สิ่งที่ควรจำเกี่ยวกับรายการนี้…")}
                   {...field}
                 />
               </FormControl>

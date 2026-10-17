@@ -90,8 +90,9 @@ function sideTexture(name: string, color: string, sub: string) {
 
 export function createWarehouseScene(
   host: HTMLElement,
-  opts: { onSnapshot(s: Snapshot): void; onSelect(id: string | null): void; reducedMotion?: boolean },
+  opts: { onSnapshot(s: Snapshot): void; onSelect(id: string | null): void; reducedMotion?: boolean; tr?: (s: string) => string },
 ): WarehouseScene {
+  const tr = opts.tr ?? ((s: string) => s)
   const M = {
     ground: mat("#e7ebf7"),
     yard: mat("#f3f5fb"),
@@ -200,7 +201,7 @@ export function createWarehouseScene(
   // forklift lane
   for (let x = 2; x < 13; x += 1.6) flat(scene, 0.9, 0.12, M.yellow, x, 6.4, 0.02)
   for (const [txt, z] of [["Bay 1", 9.4], ["Bay 2", 13.4]] as const) {
-    const { obj } = chip(`<span class="font-semibold text-slate-700">${txt}</span>`, "bg-white/80 px-2 py-0.5 text-[10px]")
+    const { obj } = chip(`<span class="font-semibold text-slate-700">${tr(txt)}</span>`, "bg-white/80 px-2 py-0.5 text-[10px]")
     obj.position.set(-10.6, 0.2, z)
     scene.add(obj)
   }
@@ -294,7 +295,7 @@ export function createWarehouseScene(
   for (const [x, z] of [[-7.5, -0.4], [2.5, -0.4], [-9.2, 3.2], [-7.6, 3.2], [-9.2, 4.6]]) pallet(scene, x, z, { layers: 2 })
   for (const [x, z] of [[25.2, 0.2], [25.2, 1.8], [26.8, 0.2], [26.8, 1.8], [25.2, 5.6], [26.8, 5.6]]) pallet(scene, x, z, { blue: true, layers: 2 })
   for (const [x, z] of [[14.5, -12], [16.1, -12], [14.5, -13.6]]) pallet(scene, x, z, { blue: true, layers: 3 })
-  const pal1026 = chip(`<b class="text-slate-900">PAL-1026</b> Event kits`)
+  const pal1026 = chip(`<b class="text-slate-900">PAL-1026</b> ${tr("Event kits")}`)
   pal1026.obj.position.set(-8.4, 1.9, 3.9)
   scene.add(pal1026.obj)
 
@@ -511,7 +512,7 @@ export function createWarehouseScene(
     const label = l.steps[l.i].label
     if (label !== l.info.status) {
       l.info.status = label
-      l.tag.el.innerHTML = `<b class="text-blue-700">${l.info.id}</b> ${label}`
+      l.tag.el.innerHTML = `<b class="text-blue-700">${l.info.id}</b> ${tr(label)}`
     }
   }
 
@@ -723,7 +724,7 @@ export function createWarehouseScene(
       n.eta = inb.timer * SIM_SPEED
     }
     for (const a of [out, inb]) {
-      const html = `<b class="text-slate-900">${a.info.id}</b> ${a.info.state}`
+      const html = `<b class="text-slate-900">${a.info.id}</b> ${tr(a.info.state)}`
       if (a.tag.el.innerHTML !== html) a.tag.el.innerHTML = html
     }
 
@@ -733,6 +734,7 @@ export function createWarehouseScene(
   }
 
   const office = buildOffice({
+    tr,
     scene,
     textures,
     simSpeed: SIM_SPEED,

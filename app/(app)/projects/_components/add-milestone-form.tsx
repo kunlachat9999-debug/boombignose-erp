@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { addMilestone } from "../actions"
+import { useT } from "@/components/locale-provider"
+import { translateMessage } from "@/lib/i18n-messages"
 
 const Schema = z.object({
   title: z.string().min(1, "Milestone title is required"),
@@ -25,6 +27,7 @@ const Schema = z.object({
 type Values = z.infer<typeof Schema>
 
 export function AddMilestoneForm({ projectId }: { projectId: string }) {
+  const t = useT()
   const form = useForm<Values>({
     resolver: zodResolver(Schema),
     defaultValues: { title: "", dueDate: "" },
@@ -35,8 +38,8 @@ export function AddMilestoneForm({ projectId }: { projectId: string }) {
       <form
         onSubmit={form.handleSubmit(async (v) => {
           const res = await addMilestone({ projectId, ...v })
-          if (res?.error) return toast.error(res.error)
-          toast.success("Milestone added")
+          if (res?.error) return toast.error(translateMessage(t, res.error))
+          toast.success(t("Milestone added", "เพิ่มเป้าหมายแล้ว"))
           form.reset({ title: "", dueDate: "" })
         })}
         className="flex flex-col gap-3 sm:flex-row sm:items-end"
@@ -46,9 +49,9 @@ export function AddMilestoneForm({ projectId }: { projectId: string }) {
           name="title"
           render={({ field }) => (
             <FormItem className="flex-1">
-              <FormLabel className="sr-only">Milestone title</FormLabel>
+              <FormLabel className="sr-only">{t("Milestone title", "ชื่อเป้าหมาย")}</FormLabel>
               <FormControl>
-                <Input placeholder="Add a milestone…" {...field} />
+                <Input placeholder={t("Add a milestone…", "เพิ่มเป้าหมาย…")} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -59,7 +62,7 @@ export function AddMilestoneForm({ projectId }: { projectId: string }) {
           name="dueDate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="sr-only">Due date</FormLabel>
+              <FormLabel className="sr-only">{t("Due date", "วันครบกำหนด")}</FormLabel>
               <FormControl>
                 <Input type="date" className="w-full sm:w-40" {...field} />
               </FormControl>
@@ -67,7 +70,7 @@ export function AddMilestoneForm({ projectId }: { projectId: string }) {
           )}
         />
         <Button type="submit" disabled={form.formState.isSubmitting}>
-          <Plus data-icon="inline-start" /> Add milestone
+          <Plus data-icon="inline-start" /> {t("Add milestone", "เพิ่มเป้าหมาย")}
         </Button>
       </form>
     </Form>

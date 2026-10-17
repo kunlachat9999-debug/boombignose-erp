@@ -1,5 +1,7 @@
 import { formatInTimeZone } from "date-fns-tz"
 
+import type { T } from "@/lib/i18n"
+
 /**
  * Pure presentation helpers for the audit / activity feed.
  *
@@ -73,24 +75,28 @@ const DAY = 24 * HOUR
  * falling back to an absolute Bangkok-local date for anything older than a week.
  * Returns "" for an unparseable input so the caller can render nothing.
  */
-export function relativeTime(iso: string, now: Date = new Date()): string {
+export function relativeTime(
+  iso: string,
+  now: Date = new Date(),
+  t: T = (en) => en
+): string {
   const then = Date.parse(iso)
   if (Number.isNaN(then)) return ""
 
   const diff = now.getTime() - then
-  if (diff < MINUTE) return "just now"
+  if (diff < MINUTE) return t("just now", "เมื่อสักครู่")
 
   if (diff < HOUR) {
     const m = Math.floor(diff / MINUTE)
-    return `${m} ${m === 1 ? "minute" : "minutes"} ago`
+    return t(`${m} ${m === 1 ? "minute" : "minutes"} ago`, `${m} นาทีที่แล้ว`)
   }
   if (diff < DAY) {
     const h = Math.floor(diff / HOUR)
-    return `${h} ${h === 1 ? "hour" : "hours"} ago`
+    return t(`${h} ${h === 1 ? "hour" : "hours"} ago`, `${h} ชั่วโมงที่แล้ว`)
   }
   if (diff < 7 * DAY) {
     const d = Math.floor(diff / DAY)
-    return `${d} ${d === 1 ? "day" : "days"} ago`
+    return t(`${d} ${d === 1 ? "day" : "days"} ago`, `${d} วันที่แล้ว`)
   }
 
   return formatInTimeZone(then, FEED_TZ, "d MMM yyyy")

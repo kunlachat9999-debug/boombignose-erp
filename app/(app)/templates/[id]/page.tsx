@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { formatTHB } from "@/lib/money"
 import { DeleteTemplateButton } from "../_components/delete-template-button"
+import { getT } from "@/lib/i18n-server"
 
 export const dynamic = "force-dynamic"
 
@@ -30,6 +31,7 @@ export default async function TemplateDetailPage({
 }) {
   const { id } = await params
   await requireOrgContext()
+  const t = await getT()
   const supabase = await createClient()
 
   const { data: template } = await supabase
@@ -55,12 +57,12 @@ export default async function TemplateDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={template.name} description={category?.name ?? "Uncategorized"}>
+      <PageHeader title={template.name} description={category?.name ?? t("Uncategorized", "ไม่มีหมวดหมู่")}>
         <Button variant="outline" render={<Link href="/templates" />}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t("Back", "กลับ")}
         </Button>
         <Button variant="outline" render={<Link href={`/templates/${template.id}/edit`} />}>
-          <Pencil /> Edit
+          <Pencil /> {t("Edit", "แก้ไข")}
         </Button>
         <DeleteTemplateButton id={template.id} name={template.name} />
       </PageHeader>
@@ -69,12 +71,12 @@ export default async function TemplateDetailPage({
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Overview</CardTitle>
+              <CardTitle className="text-base">{t("Overview", "ภาพรวม")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm">
                 {template.description || (
-                  <span className="text-muted-foreground">No description.</span>
+                  <span className="text-muted-foreground">{t("No description.", "ไม่มีคำอธิบาย")}</span>
                 )}
               </p>
               {tags.length > 0 ? (
@@ -91,11 +93,11 @@ export default async function TemplateDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Implementation checklist</CardTitle>
+              <CardTitle className="text-base">{t("Implementation checklist", "ขั้นตอนการติดตั้ง")}</CardTitle>
             </CardHeader>
             <CardContent>
               {steps.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No steps yet.</p>
+                <p className="text-muted-foreground text-sm">{t("No steps yet.", "ยังไม่มีขั้นตอน")}</p>
               ) : (
                 <ul className="space-y-2.5">
                   {steps.map((step, i) => (
@@ -112,7 +114,7 @@ export default async function TemplateDetailPage({
           {template.reusable_notes ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Reusable notes</CardTitle>
+                <CardTitle className="text-base">{t("Reusable notes", "บันทึกสำหรับใช้ซ้ำ")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm whitespace-pre-wrap">{template.reusable_notes}</p>
@@ -123,11 +125,11 @@ export default async function TemplateDetailPage({
 
         <Card className="h-fit">
           <CardHeader>
-            <CardTitle className="text-base">Pricing</CardTitle>
+            <CardTitle className="text-base">{t("Pricing", "ราคา")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Client price</span>
+              <span className="text-muted-foreground">{t("Client price", "ราคาขายลูกค้า")}</span>
               <span className="font-semibold">
                 {template.price_satang != null
                   ? formatTHB(template.price_satang)
@@ -136,7 +138,7 @@ export default async function TemplateDetailPage({
             </div>
             <Separator />
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Internal value</span>
+              <span className="text-muted-foreground">{t("Internal value", "มูลค่าภายใน")}</span>
               <span className="font-medium">
                 {template.internal_value_satang != null
                   ? formatTHB(template.internal_value_satang)
